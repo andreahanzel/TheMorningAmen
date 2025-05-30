@@ -1,5 +1,7 @@
 // src/views/screens/auth/ForgotPasswordScreen.tsx
-// This 
+// Forgot Password Screen for The Morning Amen app
+// Features: Email validation, user existence check, animated UI, and comprehensive messaging
+
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -13,10 +15,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
+
+interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  createdAt?: string;
+}
 
 interface ForgotPasswordScreenProps {
   onBack: () => void;
@@ -30,11 +42,15 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [userExists, setUserExists] = useState<boolean | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   // Animation values
   const slideAnim = useRef(new Animated.Value(50)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const successAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     // Entrance animations
@@ -60,51 +76,124 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(email.trim());
+  };
+
+  const checkUserExists = async (email: string): Promise<boolean> => {
+    try {
+      const storedUsers = await AsyncStorage.getItem('@registered_users');
+      if (!storedUsers) return false;
+      
+      const users: User[] = JSON.parse(storedUsers);
+      return users.some(user => user.email.toLowerCase() === email.toLowerCase().trim());
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      return false;
+    }
   };
 
   const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert('Email Required', 'Please enter your email address.');
-      return;
+    const errors: {[key: string]: string} = {};
+    
+    // Check for missing email
+    if (!email.trim()) {
+      errors.email = 'Email address is required';
+    } else if (!validateEmail(email)) {
+      errors.email = 'Please enter a valid email address';
     }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+    
+    setValidationErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
     setIsLoading(true);
-
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if user exists
+      const exists = await checkUserExists(email);
+      setUserExists(exists);
       
-      setEmailSent(true);
-      Alert.alert(
-        'Reset Link Sent! 📧',
-        'We\'ve sent a password reset link to your email address. Please check your inbox and follow the instructions.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setTimeout(() => {
-                onSuccess();
-              }, 1000);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (exists) {
+        // User exists - send reset email
+        setEmailSent(true);
+        
+        // Animate success
+        Animated.spring(successAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }).start();
+        
+        Alert.alert(
+          'Reset Link Sent! 📧',
+          `We've sent a password reset link to ${email}. Please check your inbox and spam folder, then follow the instructions to reset your password.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Auto-redirect after 3 seconds
+                setTimeout(() => {
+                  onSuccess();
+                }, 3000);
+              }
             }
-          }
-        ]
-      );
+          ]
+        );
+      } else {
+        // User doesn't exist
+        Alert.alert(
+          'Email Not Found 📧',
+          `We couldn't find an account associated with ${email}. Please check your email address or sign up for a new account.`,
+          [
+            {
+              text: 'Try Again',
+              style: 'default',
+            },
+            {
+              text: 'Sign Up',
+              onPress: () => {
+                // Navigate to sign up (you can implement this)
+                onBack();
+              }
+            }
+          ]
+        );
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to send reset email. Please try again.');
+      console.error('Reset password error:', error);
+      Alert.alert(
+        'Connection Error',
+        'Unable to process your request. Please check your internet connection and try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Helper function for input wrapper styles
+  const getInputWrapperStyle = (fieldName: string, isValid?: boolean): ViewStyle[] => {
+    const hasError = validationErrors[fieldName];
+    const baseStyles: ViewStyle[] = [styles.inputWrapper];
+
+    if (focusedInput === fieldName) baseStyles.push(styles.inputWrapperFocused);
+    if (hasError) baseStyles.push(styles.inputWrapperError);
+    else if (isValid) baseStyles.push(styles.inputWrapperSuccess);
+
+    return baseStyles;
+  };
+
+  const isValidEmail = validateEmail(email);
+
   return (
     <LinearGradient
-      colors={['#ff8c42', '#ff6b35', '#ff4500']}
+      colors={['#ff9a56', '#ff6b35', '#f7931e'] as const}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -117,176 +206,214 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <Animated.View
-            style={[
-              styles.header,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backButtonText}>←</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.miniLogoContainer}>
-              <View style={styles.miniLogo}>
-                <LinearGradient
-                  colors={['#ffeb3b', '#ff6b35', '#ff4500']}
-                  style={styles.miniLogoGradient}
-                >
-                  <Text style={styles.miniLogoText}>TMA</Text>
-                </LinearGradient>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Icon Section */}
-          <Animated.View
-            style={[
-              styles.iconSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
-              },
-            ]}
-          >
-            <View style={styles.iconContainer}>
-              <Text style={styles.lockIcon}>🔐</Text>
-            </View>
-          </Animated.View>
-
-          {/* Content Section */}
-          <Animated.View
-            style={[
-              styles.contentSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.title}>Forgot Password?</Text>
-            <Text style={styles.subtitle}>
-              {emailSent 
-                ? 'Check your email for reset instructions'
-                : 'Don\'t worry! Enter your email address and we\'ll send you a link to reset your password.'
-              }
-            </Text>
-          </Animated.View>
-
-          {/* Form Section */}
-          {!emailSent && (
+          <View style={styles.formWrapper}>
+            {/* Header with Mini Logo */}
             <Animated.View
               style={[
-                styles.formContainer,
+                styles.header,
                 {
                   opacity: fadeAnim,
                   transform: [{ translateY: slideAnim }],
                 },
               ]}
             >
-              {/* Email Input */}
-              <View style={styles.inputContainer}>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Email Address</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoFocus
-                  />
-                  <View style={styles.inputUnderline} />
+              <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <View style={styles.backIcon}>
+                  <View style={styles.backArrow} />
+                </View>
+              </TouchableOpacity>
+              
+              <View style={styles.miniLogoContainer}>
+                <View style={styles.miniLogo}>
+                  <LinearGradient
+                    colors={['#ffeb3b', '#ff6b35', '#f7931e'] as const}
+                    style={styles.miniLogoGradient}
+                  >
+                    <Text style={styles.miniLogoText}>TMA</Text>
+                  </LinearGradient>
                 </View>
               </View>
-
-              {/* Reset Button */}
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={handleResetPassword}
-                disabled={isLoading}
-              >
-                <LinearGradient
-                  colors={['#ffeb3b', '#ff9800', '#ff6b35']}
-                  style={styles.resetButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.resetButtonText}>
-                    {isLoading ? 'Sending...' : 'Send Reset Link'}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
             </Animated.View>
-          )}
 
-          {/* Success Section */}
-          {emailSent && (
+            {/* Icon Section */}
             <Animated.View
               style={[
-                styles.successSection,
+                styles.iconSection,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+                },
+              ]}
+            >
+              <View style={styles.iconContainer}>
+                <Text style={styles.lockIcon}>
+                  {emailSent ? '📧' : '🔐'}
+                </Text>
+              </View>
+            </Animated.View>
+
+            {/* Content Section */}
+            <Animated.View
+              style={[
+                styles.contentSection,
                 {
                   opacity: fadeAnim,
                   transform: [{ translateY: slideAnim }],
                 },
               ]}
             >
-              <View style={styles.successIconContainer}>
-                <Text style={styles.successIcon}>✅</Text>
-              </View>
-              <Text style={styles.successText}>Email Sent Successfully!</Text>
-              <Text style={styles.successSubtext}>
-                Please check your inbox and spam folder.
+              <Text style={styles.title}>
+                {emailSent ? 'Check Your Email' : 'Forgot Password?'}
               </Text>
+              <Text style={styles.subtitle}>
+                {emailSent 
+                  ? `We've sent reset instructions to ${email}. Please check your inbox and spam folder.`
+                  : 'Don\'t worry! Enter your email address and we\'ll send you a secure link to reset your password.'
+                }
+              </Text>
+            </Animated.View>
 
-              <TouchableOpacity
-                style={styles.backToLoginButton}
-                onPress={onSuccess}
+            {/* Form Section */}
+            {!emailSent && (
+              <Animated.View
+                style={[
+                  styles.formContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  },
+                ]}
               >
-                <Text style={styles.backToLoginText}>Back to Login</Text>
+                {/* Email Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Email Address</Text>
+                  <View style={getInputWrapperStyle('email', isValidEmail && email.length > 0)}>
+                    <TextInput
+                      style={styles.input}
+                      value={email}
+                      onChangeText={(text: string) => {
+                        setEmail(text);
+                        setUserExists(null); // Reset user existence check
+                        if (validationErrors.email) {
+                          setValidationErrors(prev => {
+                            const newErrors = {...prev};
+                            delete newErrors.email;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                      placeholder="Enter your email address"
+                      placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoFocus
+                      selectionColor="rgba(255, 255, 255, 0.5)"
+                      underlineColorAndroid="transparent"
+                      onFocus={() => setFocusedInput('email')}
+                      onBlur={() => setFocusedInput(null)}
+                    />
+                    {isValidEmail && email.length > 0 && !validationErrors.email && (
+                      <Text style={styles.validationIcon}>✓</Text>
+                    )}
+                  </View>
+                  {validationErrors.email && (
+                    <Text style={styles.errorText}>{validationErrors.email}</Text>
+                  )}
+                </View>
+
+                {/* Reset Button */}
+                <TouchableOpacity
+                  style={styles.resetButton}
+                  onPress={handleResetPassword}
+                  disabled={isLoading || !email.trim()}
+                >
+                  <LinearGradient
+                    colors={
+                      isLoading || !email.trim() 
+                        ? ['#cccccc', '#999999', '#666666']
+                        : ['#ffeb3b', '#ff9800', '#ff6b35']
+                    }
+                    style={styles.resetButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.resetButtonText}>
+                      {isLoading ? 'Sending Reset Link...' : 'Send Reset Link'}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+
+            {/* Success Section */}
+            {emailSent && (
+              <Animated.View
+                style={[
+                  styles.successSection,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }, { scale: successAnim }],
+                  },
+                ]}
+              >
+                <View style={styles.successIconContainer}>
+                  <Text style={styles.successIcon}>✅</Text>
+                </View>
+                <Text style={styles.successText}>Email Sent Successfully!</Text>
+                <Text style={styles.successSubtext}>
+                  If you don't see the email in a few minutes, please check your spam folder.
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.backToLoginButton}
+                  onPress={onSuccess}
+                >
+                  <LinearGradient
+                    colors={['#ffeb3b', '#ff9800', '#ff6b35']}
+                    style={styles.backToLoginGradient}
+                  >
+                    <Text style={styles.backToLoginText}>Back to Login</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+
+            {/* Help Section */}
+            <Animated.View
+              style={[
+                styles.helpSection,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
+              <Text style={styles.helpText}>Remember your password?</Text>
+              <TouchableOpacity onPress={onBack}>
+                <Text style={styles.helpLink}>Back to Login</Text>
               </TouchableOpacity>
             </Animated.View>
-          )}
 
-          {/* Help Section */}
-          <Animated.View
-            style={[
-              styles.helpSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.helpText}>Remember your password?</Text>
-            <TouchableOpacity onPress={onBack}>
-              <Text style={styles.helpLink}>Back to Login</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* Additional Help */}
-          <Animated.View
-            style={[
-              styles.additionalHelpSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.additionalHelpText}>
-              Need more help? Contact our support team.
-            </Text>
-            <TouchableOpacity style={styles.supportButton}>
-              <Text style={styles.supportButtonText}>Get Support</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            {/* Additional Help Section */}
+            {!emailSent && (
+              <Animated.View
+                style={[
+                  styles.additionalHelpSection,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  },
+                ]}
+              >
+                <Text style={styles.additionalHelpText}>
+                  Don't have an account yet?
+                </Text>
+                <TouchableOpacity style={styles.supportButton} onPress={onBack}>
+                  <Text style={styles.supportButtonText}>Create Account</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -323,6 +450,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   
+  formWrapper: {
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -334,16 +467,28 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  
+  backIcon: {
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   
-  backButtonText: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+  backArrow: {
+    width: 12,
+    height: 12,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#FFFFFF',
+    transform: [{ rotate: '45deg' }],
   },
   
   miniLogoContainer: {
@@ -354,10 +499,10 @@ const styles = StyleSheet.create({
   miniLogo: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
   },
@@ -365,13 +510,13 @@ const styles = StyleSheet.create({
   miniLogoGradient: {
     width: '100%',
     height: '100%',
-    borderRadius: 25,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   
   miniLogoText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Outfit_700Bold',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -393,6 +538,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   
   lockIcon: {
@@ -434,31 +584,37 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   
-  inputWrapper: {
-    position: 'relative',
+  inputLabel: {
+    fontFamily: 'Outfit_500Medium',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 10,
+    marginLeft: 2,
   },
   
-  inputLabel: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 8,
-    marginLeft: 5,
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 16,
   },
   
   input: {
+    flex: 1,
     fontFamily: 'NunitoSans_400Regular',
     fontSize: 16,
     color: '#FFFFFF',
-    paddingVertical: 15,
-    paddingHorizontal: 5,
+    paddingVertical: 16,
     backgroundColor: 'transparent',
-  },
-  
-  inputUnderline: {
-    height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginTop: 5,
+    ...(Platform.OS === 'web' && {
+      outlineWidth: 0,
+      outlineColor: 'transparent',
+      boxShadow: '0 0 0px 1000px transparent inset',
+      transition: 'background-color 5000s ease-in-out 0s',
+    }),
   },
   
   resetButton: {
@@ -504,6 +660,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 2,
     borderColor: 'rgba(76, 175, 80, 0.3)',
+    shadowColor: '#4caf50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   
   successIcon: {
@@ -516,6 +677,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 15,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   
   successSubtext: {
@@ -524,21 +688,32 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     marginBottom: 30,
+    lineHeight: 22,
   },
   
   backToLoginButton: {
+    borderRadius: 30,
+    shadowColor: '#ffeb3b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  
+  backToLoginGradient: {
     paddingVertical: 12,
     paddingHorizontal: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 30,
+    alignItems: 'center',
   },
   
   backToLoginText: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   
   helpSection: {
@@ -600,9 +775,48 @@ const styles = StyleSheet.create({
   
   floatingParticle: {
     position: 'absolute',
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  
+  inputWrapperFocused: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    transform: [{ scale: 1.02 }],
+  },
+
+  inputWrapperSuccess: {
+    borderColor: 'rgba(76, 175, 80, 0.6)',
+    backgroundColor: 'rgba(76, 175, 80, 0.08)',
+  },
+
+  inputWrapperError: {
+    borderColor: 'rgba(255, 68, 68, 0.6)',
+    backgroundColor: 'rgba(255, 68, 68, 0.08)',
+  },
+
+  validationIcon: {
+    fontSize: 18,
+    color: '#4caf50',
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    marginLeft: 8,
+    marginTop: 1,
+    minWidth: 20, 
+  },
+
+  errorText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 12,
+    color: '#ff4444',
+    marginTop: 6,
+    marginLeft: 2,
   },
 });
