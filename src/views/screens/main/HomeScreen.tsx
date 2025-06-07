@@ -1,39 +1,38 @@
 // src/views/screens/main/HomeScreen.tsx
-// Beautiful Home Screen for The Morning Amen app
-// Features: 3D cards, smooth animations, gradient backgrounds, and mobile-friendly design
-// Matches the orange gradient brand theme perfectly
+// Fixed layout with proper card sizing and scrolling
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
+    Pressable,
     ScrollView,
     Animated,
     Dimensions,
     StatusBar,
     RefreshControl,
     Platform,
-    } from 'react-native';
-    import { LinearGradient } from 'expo-linear-gradient';
-    import { BlurView } from 'expo-blur';
-    import AsyncStorage from '@react-native-async-storage/async-storage';
+    SafeAreaView,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-    const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-    interface User {
+interface User {
     firstName: string;
     lastName: string;
     email: string;
-    }
+}
 
-    interface HomeScreenProps {
+interface HomeScreenProps {
     navigation: any;
     onLogout?: () => void;
-    }
+}
 
-    export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -57,7 +56,7 @@ import {
         
         // Update time every minute
         const timeInterval = setInterval(() => {
-        setCurrentTime(new Date());
+            setCurrentTime(new Date());
         }, 60000);
 
         return () => clearInterval(timeInterval);
@@ -65,44 +64,44 @@ import {
 
     const loadUserData = async () => {
         try {
-        const userData = await AsyncStorage.getItem('@current_user');
-        if (userData) {
-            setCurrentUser(JSON.parse(userData));
-        }
+            const userData = await AsyncStorage.getItem('@current_user');
+            if (userData) {
+                setCurrentUser(JSON.parse(userData));
+            }
         } catch (error) {
-        console.error('Error loading user data:', error);
+            console.error('Error loading user data:', error);
         }
     };
 
     const startAnimations = () => {
         // Main container animations
         Animated.parallel([
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 800,
-            useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            tension: 50,
-            friction: 8,
-            useNativeDriver: true,
-        }),
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                tension: 50,
+                friction: 8,
+                useNativeDriver: true,
+            }),
         ]).start();
 
         // Staggered card animations
         const cardAnimations = cardAnims.map((anim, index) =>
-        Animated.timing(anim, {
-            toValue: 1,
-            duration: 600,
-            delay: index * 150,
-            useNativeDriver: true,
-        })
+            Animated.timing(anim, {
+                toValue: 1,
+                duration: 600,
+                delay: index * 150,
+                useNativeDriver: true,
+            })
         );
 
         Animated.stagger(100, cardAnimations).start();
@@ -112,7 +111,7 @@ import {
         setRefreshing(true);
         // Simulate refresh
         setTimeout(() => {
-        setRefreshing(false);
+            setRefreshing(false);
         }, 1000);
     }, []);
 
@@ -125,28 +124,40 @@ import {
 
     const getDateString = () => {
         return currentTime.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
         });
     };
 
     const handleCardPress = (screen: string) => {
         const scaleDown = Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
+            toValue: 0.95,
+            duration: 100,
+            useNativeDriver: true,
         });
         
         const scaleUp = Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
         });
 
         Animated.sequence([scaleDown, scaleUp]).start(() => {
-        navigation.navigate(screen);
+            // For now, just navigate to existing tab screens
+            if (screen === 'Devotions') {
+                navigation.navigate('DevotionsStack');
+            } else if (screen === 'PrayerWall') {
+                navigation.navigate('PrayerWall');
+            } else if (screen === 'VideoGallery') {
+                navigation.navigate('Videos');
+            } else if (screen === 'Profile') {
+                navigation.navigate('Profile');
+            } else {
+                // For screens that don't exist yet, show an alert
+                console.log(`Navigation to ${screen} - Screen coming soon!`);
+            }
         });
     };
 
@@ -162,347 +173,348 @@ import {
         title: string;
         subtitle: string;
         icon: string;
-        colors: string[];
+        colors: [string, string, ...string[]];
         onPress: () => void;
         animValue: Animated.Value;
         size?: 'large' | 'medium' | 'small';
     }) => {
-        const cardWidth = size === 'large' ? width - 40 : size === 'medium' ? (width - 60) / 2 : (width - 80) / 3;
-        const cardHeight = size === 'large' ? 140 : size === 'medium' ? 120 : 100;
-
         return (
-        <Animated.View
-            style={[
-            styles.featureCard,
-            {
-                width: cardWidth,
-                height: cardHeight,
-                opacity: animValue,
-                transform: [
-                {
-                    translateY: animValue.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [50, 0],
-                    }),
-                },
-                {
-                    scale: animValue.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.8, 1],
-                    }),
-                },
-                ],
-            },
-            ]}
-        >
-            <TouchableOpacity
-            style={styles.cardTouchable}
-            onPress={onPress}
-            activeOpacity={0.8}
+            <Animated.View
+                style={[
+                    styles.featureCard,
+                    size === 'large' && styles.largeCard,
+                    size === 'medium' && styles.mediumCard,
+                    {
+                        transform: [
+                            {
+                                translateY: animValue.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [50, 0],
+                                }),
+                            },
+                            {
+                                scale: animValue.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0.8, 1],
+                                }),
+                            },
+                        ],
+                    },
+                ]}
             >
-            <LinearGradient
-                colors={colors}
-                style={styles.cardGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-            >
-                <View style={styles.cardContent}>
-                <View style={styles.cardIcon}>
-                    <Text style={[styles.iconText, { fontSize: size === 'large' ? 32 : 24 }]}>
-                    {icon}
-                    </Text>
-                </View>
-                <View style={styles.cardTextContainer}>
-                    <Text style={[styles.cardTitle, { fontSize: size === 'large' ? 18 : 16 }]}>
-                    {title}
-                    </Text>
-                    <Text style={[styles.cardSubtitle, { fontSize: size === 'large' ? 14 : 12 }]}>
-                    {subtitle}
-                    </Text>
-                </View>
-                </View>
-                
-                {/* Floating particles in cards */}
-                <View style={styles.cardParticles}>
-                {[...Array(3)].map((_, index) => (
-                    <View
-                    key={index}
-                    style={[
-                        styles.cardParticle,
-                        {
-                        top: `${20 + Math.random() * 60}%`,
-                        right: `${10 + Math.random() * 30}%`,
-                        opacity: 0.3,
-                        },
-                    ]}
-                    />
-                ))}
-                </View>
-            </LinearGradient>
-            </TouchableOpacity>
-        </Animated.View>
+                <Pressable
+                    style={styles.cardTouchable}
+                    onPress={onPress}
+                >
+                    <LinearGradient
+                        colors={colors}
+                        style={styles.cardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <View style={styles.cardContent}>
+                            <View style={styles.cardIcon}>
+                                <Text style={[styles.iconText, { fontSize: size === 'large' ? 32 : 24 }]}>
+                                    {icon}
+                                </Text>
+                            </View>
+                            <View style={styles.cardTextContainer}>
+                                <Text style={[styles.cardTitle, { fontSize: size === 'large' ? 18 : 16 }]}>
+                                    {title}
+                                </Text>
+                                <Text style={[styles.cardSubtitle, { fontSize: size === 'large' ? 14 : 12 }]}>
+                                    {subtitle}
+                                </Text>
+                            </View>
+                        </View>
+                        
+                        {/* Floating particles in cards */}
+                        <View style={styles.cardParticles}>
+                            {[...Array(3)].map((_, index) => (
+                                <View
+                                    key={index}
+                                    style={[
+                                        styles.cardParticle,
+                                        {
+                                            top: `${20 + Math.random() * 60}%`,
+                                            right: `${10 + Math.random() * 30}%`,
+                                            opacity: 0.3,
+                                        },
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    </LinearGradient>
+                </Pressable>
+            </Animated.View>
         );
     };
 
     return (
-        <>
-        <StatusBar barStyle="light-content" backgroundColor="#ff6b35" />
-        <LinearGradient
-            colors={['#ff9a56', '#ff6b35', '#f7931e']}
-            style={styles.container}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-        >
-            <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-                <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor="#FFFFFF"
-                colors={['#ff6b35']}
-                />
-            }
+        <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#ff6b35" />
+            <LinearGradient
+                colors={['#ff9a56', '#ff6b35', '#f7931e']}
+                style={styles.gradientContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
             >
-            {/* Header Section */}
-            <Animated.View
-                style={[
-                styles.header,
-                {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                },
-                ]}
-            >
-                <View style={styles.headerTop}>
-                <View style={styles.headerLeft}>
-                    <View style={styles.logoContainer}>
-                    <LinearGradient
-                        colors={['#ffeb3b', '#ff6b35', '#f7931e']}
-                        style={styles.logo}
-                    >
-                        <Text style={styles.logoText}>TMA</Text>
-                    </LinearGradient>
-                    </View>
-                    <View style={styles.greetingContainer}>
-                    <Text style={styles.greeting}>
-                        {getGreeting()}{currentUser ? `, ${currentUser.firstName}` : ''}!
-                    </Text>
-                    <Text style={styles.dateText}>{getDateString()}</Text>
-                    </View>
-                </View>
-                
-                <TouchableOpacity
-                    style={styles.profileButton}
-                    onPress={() => navigation.navigate('Profile')}
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    bounces={true}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#FFFFFF"
+                            colors={['#ff6b35']}
+                        />
+                    }
                 >
-                    <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                    style={styles.profileGradient}
+                    {/* Header Section */}
+                    <Animated.View
+                        style={[
+                            styles.header,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }],
+                            },
+                        ]}
                     >
-                    <Text style={styles.profileIcon}>👤</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-                </View>
+                        <View style={styles.headerTop}>
+                            <View style={styles.headerLeft}>
+                                <View style={styles.logoContainer}>
+                                    <LinearGradient
+                                        colors={['#ffeb3b', '#ff6b35', '#f7931e']}
+                                        style={styles.logo}
+                                    >
+                                        <Text style={styles.logoText}>TMA</Text>
+                                    </LinearGradient>
+                                </View>
+                                <View style={styles.greetingContainer}>
+                                    <Text style={styles.greeting}>
+                                        {getGreeting()}{currentUser ? `, ${currentUser.firstName}` : ''}!
+                                    </Text>
+                                    <Text style={styles.dateText}>{getDateString()}</Text>
+                                </View>
+                            </View>
+                            
+                            <Pressable
+                                style={styles.profileButton}
+                                onPress={() => navigation.navigate('Profile')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                                    style={styles.profileGradient}
+                                >
+                                    <Text style={styles.profileIcon}>👤</Text>
+                                </LinearGradient>
+                            </Pressable>
+                        </View>
 
-                <Text style={styles.subtitle}>
-                Start your day with faith, hope, and purpose
-                </Text>
-            </Animated.View>
+                        <Text style={styles.subtitle}>
+                            Start your day with faith, hope, and purpose
+                        </Text>
+                    </Animated.View>
 
-            {/* Daily Highlight Card */}
-            <Animated.View
-                style={[
-                styles.highlightSection,
-                {
-                    opacity: fadeAnim,
-                    transform: [{ scale: scaleAnim }],
-                },
-                ]}
-            >
-                <BlurView intensity={20} style={styles.highlightCard}>
-                <LinearGradient
-                    colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
-                    style={styles.highlightGradient}
-                >
-                    <Text style={styles.highlightTitle}>✨ Today's Blessing</Text>
-                    <Text style={styles.highlightVerse}>
-                    "This is the day that the Lord has made; let us rejoice and be glad in it."
-                    </Text>
-                    <Text style={styles.highlightReference}>- Psalm 118:24</Text>
-                    
-                    <TouchableOpacity
-                    style={styles.highlightButton}
-                    onPress={() => handleCardPress('VerseOfDay')}
+                    {/* Daily Highlight Card */}
+                    <Animated.View
+                        style={[
+                            styles.highlightSection,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: scaleAnim }],
+                            },
+                        ]}
                     >
-                    <Text style={styles.highlightButtonText}>Read More →</Text>
-                    </TouchableOpacity>
-                </LinearGradient>
-                </BlurView>
-            </Animated.View>
+                        <BlurView intensity={20} style={styles.highlightCard}>
+                            <LinearGradient
+                                colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
+                                style={styles.highlightGradient}
+                            >
+                                <Text style={styles.highlightTitle}>✨ Today's Blessing</Text>
+                                <Text style={styles.highlightVerse}>
+                                    "This is the day that the Lord has made; let us rejoice and be glad in it."
+                                </Text>
+                                <Text style={styles.highlightReference}>- Psalm 118:24</Text>
+                                
+                                <Pressable
+                                    style={styles.highlightButton}
+                                    onPress={() => handleCardPress('VerseOfDay')}
+                                >
+                                    <Text style={styles.highlightButtonText}>Read More →</Text>
+                                </Pressable>
+                            </LinearGradient>
+                        </BlurView>
+                    </Animated.View>
 
-            {/* Main Features Grid */}
-            <Animated.View
-                style={[
-                styles.featuresSection,
-                {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                },
-                ]}
-            >
-                <Text style={styles.sectionTitle}>Explore Your Faith Journey</Text>
-                
-                {/* Large Feature Cards */}
-                <View style={styles.featuresGrid}>
-                <FeatureCard
-                    title="Daily Devotions"
-                    subtitle="Inspiring stories and reflections"
-                    icon="📖"
-                    colors={['#ff6b35', '#ff8c42', '#ffa726']}
-                    onPress={() => handleCardPress('Devotions')}
-                    animValue={cardAnims[0]}
-                    size="large"
-                />
-
-                <View style={styles.mediumCardsRow}>
-                    <FeatureCard
-                    title="Prayer Wall"
-                    subtitle="Share & pray together"
-                    icon="🙏"
-                    colors={['#ff7043', '#ff5722', '#f4511e']}
-                    onPress={() => handleCardPress('PrayerWall')}
-                    animValue={cardAnims[1]}
-                    size="medium"
-                    />
-                    
-                    <FeatureCard
-                    title="Video Messages"
-                    subtitle="Inspirational content"
-                    icon="🎥"
-                    colors={['#ff9800', '#f57c00', '#ef6c00']}
-                    onPress={() => handleCardPress('VideoGallery')}
-                    animValue={cardAnims[2]}
-                    size="medium"
-                    />
-                </View>
-
-                <FeatureCard
-                    title="Daily Affirmations"
-                    subtitle="Strengthen your faith daily"
-                    icon="💝"
-                    colors={['#ffb74d', '#ffa726', '#ff9800']}
-                    onPress={() => handleCardPress('Affirmations')}
-                    animValue={cardAnims[3]}
-                    size="large"
-                />
-
-                <View style={styles.mediumCardsRow}>
-                    <FeatureCard
-                    title="Meditation"
-                    subtitle="Find inner peace"
-                    icon="🧘‍♀️"
-                    colors={['#ffcc02', '#ffb300', '#ff8f00']}
-                    onPress={() => handleCardPress('Meditation')}
-                    animValue={cardAnims[4]}
-                    size="medium"
-                    />
-                    
-                    <FeatureCard
-                    title="My Favorites"
-                    subtitle="Saved content"
-                    icon="⭐"
-                    colors={['#ffd54f', '#ffca28', '#ffc107']}
-                    onPress={() => handleCardPress('Favorites')}
-                    animValue={cardAnims[5]}
-                    size="medium"
-                    />
-                </View>
-                </View>
-            </Animated.View>
-
-            {/* Quick Actions */}
-            <Animated.View
-                style={[
-                styles.quickActionsSection,
-                {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                },
-                ]}
-            >
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
-                <View style={styles.quickActionsGrid}>
-                <TouchableOpacity
-                    style={styles.quickActionButton}
-                    onPress={() => handleCardPress('PrayerWall')}
-                >
-                    <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                    style={styles.quickActionGradient}
+                    {/* Main Features Grid */}
+                    <Animated.View
+                        style={[
+                            styles.featuresSection,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }],
+                            },
+                        ]}
                     >
-                    <Text style={styles.quickActionIcon}>🙏</Text>
-                    <Text style={styles.quickActionText}>Add Prayer</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                        <Text style={styles.sectionTitle}>Explore Your Faith Journey</Text>
+                        
+                        {/* Features Grid Layout */}
+                        <View style={styles.featuresGrid}>
+                            <FeatureCard
+                                title="Daily Devotions"
+                                subtitle="Inspiring stories and reflections"
+                                icon="📖"
+                                colors={['#ff6b35', '#ff8c42', '#ffa726']}
+                                onPress={() => handleCardPress('Devotions')}
+                                animValue={cardAnims[0]}
+                                size="large"
+                            />
 
-                <TouchableOpacity
-                    style={styles.quickActionButton}
-                    onPress={() => handleCardPress('About')}
-                >
-                    <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                    style={styles.quickActionGradient}
-                    >
-                    <Text style={styles.quickActionIcon}>ℹ️</Text>
-                    <Text style={styles.quickActionText}>About</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                            <View style={styles.mediumCardsRow}>
+                                <FeatureCard
+                                    title="Prayer Wall"
+                                    subtitle="Share & pray together"
+                                    icon="🙏"
+                                    colors={['#ff7043', '#ff5722', '#f4511e']}
+                                    onPress={() => handleCardPress('PrayerWall')}
+                                    animValue={cardAnims[1]}
+                                    size="medium"
+                                />
+                                
+                                <FeatureCard
+                                    title="Video Messages"
+                                    subtitle="Inspirational content"
+                                    icon="🎥"
+                                    colors={['#ff9800', '#f57c00', '#ef6c00']}
+                                    onPress={() => handleCardPress('VideoGallery')}
+                                    animValue={cardAnims[2]}
+                                    size="medium"
+                                />
+                            </View>
 
-                <TouchableOpacity
-                    style={styles.quickActionButton}
-                    onPress={() => handleCardPress('Settings')}
-                >
-                    <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                    style={styles.quickActionGradient}
+                            <FeatureCard
+                                title="Daily Affirmations"
+                                subtitle="Strengthen your faith daily"
+                                icon="💝"
+                                colors={['#ffb74d', '#ffa726', '#ff9800']}
+                                onPress={() => handleCardPress('Affirmations')}
+                                animValue={cardAnims[3]}
+                                size="large"
+                            />
+
+                            <View style={styles.mediumCardsRow}>
+                                <FeatureCard
+                                    title="Meditation"
+                                    subtitle="Find inner peace"
+                                    icon="🧘‍♀️"
+                                    colors={['#ffcc02', '#ffb300', '#ff8f00']}
+                                    onPress={() => handleCardPress('Meditation')}
+                                    animValue={cardAnims[4]}
+                                    size="medium"
+                                />
+                                
+                                <FeatureCard
+                                    title="My Favorites"
+                                    subtitle="Saved content"
+                                    icon="⭐"
+                                    colors={['#ffd54f', '#ffca28', '#ffc107']}
+                                    onPress={() => handleCardPress('Favorites')}
+                                    animValue={cardAnims[5]}
+                                    size="medium"
+                                />
+                            </View>
+                        </View>
+                    </Animated.View>
+
+                    {/* Quick Actions */}
+                    <Animated.View
+                        style={[
+                            styles.quickActionsSection,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }],
+                            },
+                        ]}
                     >
-                    <Text style={styles.quickActionIcon}>⚙️</Text>
-                    <Text style={styles.quickActionText}>Settings</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                        <Text style={styles.sectionTitle}>Quick Actions</Text>
+                        <View style={styles.quickActionsGrid}>
+                            <Pressable
+                                style={styles.quickActionButton}
+                                onPress={() => handleCardPress('PrayerWall')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                                    style={styles.quickActionGradient}
+                                >
+                                    <Text style={styles.quickActionIcon}>🙏</Text>
+                                    <Text style={styles.quickActionText}>Add Prayer</Text>
+                                </LinearGradient>
+                            </Pressable>
+
+                            <Pressable
+                                style={styles.quickActionButton}
+                                onPress={() => handleCardPress('About')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                                    style={styles.quickActionGradient}
+                                >
+                                    <Text style={styles.quickActionIcon}>ℹ️</Text>
+                                    <Text style={styles.quickActionText}>About</Text>
+                                </LinearGradient>
+                            </Pressable>
+
+                            <Pressable
+                                style={styles.quickActionButton}
+                                onPress={() => handleCardPress('Settings')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                                    style={styles.quickActionGradient}
+                                >
+                                    <Text style={styles.quickActionIcon}>⚙️</Text>
+                                    <Text style={styles.quickActionText}>Settings</Text>
+                                </LinearGradient>
+                            </Pressable>
+                        </View>
+                    </Animated.View>
+
+                    {/* Bottom Spacing for tab bar */}
+                    <View style={styles.bottomSpacing} />
+                </ScrollView>
+
+                {/* Floating Background Particles */}
+                <View style={styles.backgroundParticles}>
+                    {[...Array(8)].map((_, index) => (
+                        <View
+                            key={index}
+                            style={[
+                                styles.backgroundParticle,
+                                {
+                                    top: `${Math.random() * 100}%`,
+                                    left: `${Math.random() * 100}%`,
+                                    opacity: 0.1,
+                                },
+                            ]}
+                        />
+                    ))}
                 </View>
-            </Animated.View>
-
-            {/* Bottom Spacing */}
-            <View style={styles.bottomSpacing} />
-            </ScrollView>
-
-            {/* Floating Background Particles */}
-            <View style={styles.backgroundParticles}>
-            {[...Array(8)].map((_, index) => (
-                <View
-                key={index}
-                style={[
-                    styles.backgroundParticle,
-                    {
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    opacity: 0.1,
-                    },
-                ]}
-                />
-            ))}
-            </View>
-        </LinearGradient>
-        </>
+            </LinearGradient>
+        </SafeAreaView>
     );
-    };
+};
 
-    const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
+        flex: 1,
+        backgroundColor: '#ff9a56',
+    },
+    
+    gradientContainer: {
         flex: 1,
     },
     
@@ -511,12 +523,13 @@ import {
     },
     
     scrollContent: {
-        paddingBottom: 100,
+        flexGrow: 1,
+        paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Extra space for tab bar
     },
-    
+
     header: {
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+        paddingTop: Platform.OS === 'ios' ? 20 : 40,
         paddingBottom: 20,
     },
     
@@ -543,20 +556,30 @@ import {
         borderRadius: 27.5,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
     },
     
     logoText: {
         fontSize: 18,
-        fontFamily: 'Outfit_700Bold',
+        fontWeight: '700',
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
+        ...Platform.select({
+            ios: {
+                textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
+            },
+        }),
     },
     
     greetingContainer: {
@@ -565,16 +588,20 @@ import {
     
     greeting: {
         fontSize: 24,
-        fontFamily: 'Outfit_600SemiBold',
+        fontWeight: '600',
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
+        ...Platform.select({
+            ios: {
+                textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                textShadowOffset: { width: 0, height: 2 },
+                textShadowRadius: 4,
+            },
+        }),
     },
     
     dateText: {
         fontSize: 14,
-        fontFamily: 'Outfit_300Light',
+        fontWeight: '300',
         color: 'rgba(255, 255, 255, 0.9)',
         marginTop: 2,
     },
@@ -601,7 +628,7 @@ import {
     
     subtitle: {
         fontSize: 16,
-        fontFamily: 'Outfit_300Light',
+        fontWeight: '300',
         color: 'rgba(255, 255, 255, 0.9)',
         textAlign: 'center',
         marginTop: 10,
@@ -625,7 +652,7 @@ import {
     
     highlightTitle: {
         fontSize: 18,
-        fontFamily: 'Outfit_600SemiBold',
+        fontWeight: '600',
         color: '#FFFFFF',
         marginBottom: 15,
         textAlign: 'center',
@@ -633,7 +660,7 @@ import {
     
     highlightVerse: {
         fontSize: 16,
-        fontFamily: 'Outfit_400Regular',
+        fontWeight: '400',
         color: '#FFFFFF',
         textAlign: 'center',
         lineHeight: 24,
@@ -643,7 +670,7 @@ import {
     
     highlightReference: {
         fontSize: 14,
-        fontFamily: 'Outfit_500Medium',
+        fontWeight: '500',
         color: 'rgba(255, 255, 255, 0.9)',
         textAlign: 'center',
         marginBottom: 20,
@@ -661,7 +688,7 @@ import {
     
     highlightButtonText: {
         fontSize: 14,
-        fontFamily: 'Outfit_500Medium',
+        fontWeight: '500',
         color: '#FFFFFF',
     },
     
@@ -672,31 +699,55 @@ import {
     
     sectionTitle: {
         fontSize: 20,
-        fontFamily: 'Outfit_600SemiBold',
+        fontWeight: '600',
         color: '#FFFFFF',
         marginBottom: 20,
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
+        ...Platform.select({
+            ios: {
+                textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                textShadowOffset: { width: 0, height: 2 },
+                textShadowRadius: 4,
+            },
+        }),
     },
     
     featuresGrid: {
         gap: 15,
     },
     
+    // Proper medium cards row layout
     mediumCardsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'stretch',
         gap: 15,
+        width: '100%',
     },
     
     featureCard: {
         borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
+    },
+    
+    largeCard: {
+        width: '100%',
+        height: 140,
+    },
+    
+    mediumCard: {
+        flex: 1,
+        height: 120,
+        minWidth: 0, // Ensures flex child doesn't overflow
     },
     
     cardTouchable: {
@@ -732,17 +783,21 @@ import {
     
     cardTitle: {
         fontSize: 18,
-        fontFamily: 'Outfit_600SemiBold',
+        fontWeight: '600',
         color: '#FFFFFF',
         marginBottom: 5,
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
+        ...Platform.select({
+            ios: {
+                textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
+            },
+        }),
     },
     
     cardSubtitle: {
         fontSize: 14,
-        fontFamily: 'Outfit_300Light',
+        fontWeight: '300',
         color: 'rgba(255, 255, 255, 0.9)',
     },
     
@@ -795,7 +850,7 @@ import {
     
     quickActionText: {
         fontSize: 12,
-        fontFamily: 'Outfit_500Medium',
+        fontWeight: '500',
         color: '#FFFFFF',
         textAlign: 'center',
     },
@@ -818,6 +873,6 @@ import {
     },
     
     bottomSpacing: {
-        height: 50,
+        height: 100,
     },
 });

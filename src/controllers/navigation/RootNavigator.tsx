@@ -77,6 +77,8 @@
                 onSignUp={() => navigation.navigate('MainTabs')}
                 onLogin={() => navigation.navigate('Login')}
                 onBack={() => navigation.goBack()}
+                onGoogleSignUp={() => navigation.navigate('MainTabs')}
+                onAppleSignUp={() => navigation.navigate('MainTabs')}
             />
             )}
         </Stack.Screen>
@@ -154,10 +156,7 @@
             {isAuthenticated ? (
             <Stack.Screen name="MainTabs">
                 {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'MainTabs'> }) => (
-                    <MainTabNavigator 
-                        onLogout={handleLogout}
-                        navigation={navigation}
-                    />
+                    <MainTabNavigator />
                     )}
             </Stack.Screen>
             ) : (
