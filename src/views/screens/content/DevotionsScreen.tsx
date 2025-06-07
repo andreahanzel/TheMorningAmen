@@ -359,11 +359,12 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
 
                 {/* Devotions List */}
                 <ScrollView
-                    style={styles.devotionsList}
+                    style={[styles.devotionsList, { flex: 1 }]} // flex: 1
                     contentContainerStyle={styles.devotionsContent}
-                    showsVerticalScrollIndicator={false}
+                    showsVerticalScrollIndicator={true} // true for web
                     bounces={true}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true} // web compatibility
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}

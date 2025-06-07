@@ -182,12 +182,14 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
 
                 {/* Content */}
                 <ScrollView
-                    style={styles.scrollView}
+                    style={[styles.scrollView, { flex: 1 }]} 
                     contentContainerStyle={styles.contentContainer}
-                    showsVerticalScrollIndicator={false}
+                    showsVerticalScrollIndicator={true} // Changed to true for web
                     onScroll={handleScroll}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true} // Added this for web compatibility
                 >
+                    
                     {/* Hero Section */}
                     <Animated.View
                         style={[

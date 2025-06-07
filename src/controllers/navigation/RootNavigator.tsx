@@ -151,6 +151,7 @@
             screenOptions={{
             headerShown: false,
             gestureEnabled: false,
+            cardStyle: { flex: 1 }, // Ensure the card style takes full height
             }}
         >
             {isAuthenticated ? (

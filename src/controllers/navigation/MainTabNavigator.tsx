@@ -47,6 +47,7 @@ const DevotionsStackNavigator = () => {
             screenOptions={{
                 headerShown: false,
                 gestureEnabled: true,
+                cardStyle: { flex: 1 },
                 cardStyleInterpolator: ({ current, layouts }) => {
                     return {
                         cardStyle: {
@@ -184,6 +185,7 @@ const HomeStackNavigator = () => {
             screenOptions={{
                 headerShown: false,
                 gestureEnabled: true,
+                cardStyle: { flex: 1 }, // Ensure the card style takes full height
             }}
         >
             <Stack.Screen name="HomeMain" component={HomeScreen} />

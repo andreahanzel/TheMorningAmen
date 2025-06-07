@@ -19,12 +19,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width, height } = Dimensions.get('window');
-
+// Define the User interface
 interface User {
     firstName: string;
-    lastName: string;
-    email: string;
+    // Add other user properties as needed
 }
 
 interface HomeScreenProps {
@@ -32,7 +30,10 @@ interface HomeScreenProps {
     onLogout?: () => void;
 }
 
+// COMPONENT: HomeScreen
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) => {
+    const [screenDimensions, setScreenDimensions] = useState(Dimensions.get('window'));
+    const isSmallScreen = Dimensions.get('window').width < 400;
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -49,6 +50,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         new Animated.Value(0),
         new Animated.Value(0),
     ]).current;
+
+    useEffect(() => {
+        const subscription = Dimensions.addEventListener('change', ({ window }) => {
+            setScreenDimensions(window);
+        });
+        return () => subscription?.remove();
+    }, []);
 
     useEffect(() => {
         loadUserData();
@@ -161,94 +169,97 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         });
     };
 
-    const FeatureCard = ({ 
-        title, 
-        subtitle, 
-        icon, 
-        colors, 
-        onPress, 
-        animValue,
-        size = 'large' 
-    }: {
-        title: string;
-        subtitle: string;
-        icon: string;
-        colors: [string, string, ...string[]];
-        onPress: () => void;
-        animValue: Animated.Value;
-        size?: 'large' | 'medium' | 'small';
-    }) => {
-        return (
-            <Animated.View
-                style={[
-                    styles.featureCard,
-                    size === 'large' && styles.largeCard,
-                    size === 'medium' && styles.mediumCard,
-                    {
-                        transform: [
-                            {
-                                translateY: animValue.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [50, 0],
-                                }),
-                            },
-                            {
-                                scale: animValue.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [0.8, 1],
-                                }),
-                            },
-                        ],
-                    },
-                ]}
+const FeatureCard = ({ 
+    title, 
+    subtitle, 
+    icon, 
+    colors, 
+    onPress, 
+    animValue,
+    size = 'large' 
+}: {
+    title: string;
+    subtitle: string;
+    icon: string;
+    colors: [string, string, ...string[]];
+    onPress: () => void;
+    animValue: Animated.Value;
+    size?: 'large' | 'medium' | 'small';
+}) => {
+    return (
+        <Animated.View
+            style={[
+                styles.featureCard,
+                size === 'large' && styles.largeCard,
+                size === 'medium' && styles.mediumCard,
+                {
+                    transform: [
+                        {
+                            translateY: animValue.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [50, 0],
+                            }),
+                        },
+                        {
+                            scale: animValue.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0.8, 1],
+                            }),
+                        },
+                    ],
+                },
+            ]}
+        >
+            <Pressable
+                style={styles.cardTouchable}
+                onPress={onPress}
             >
-                <Pressable
-                    style={styles.cardTouchable}
-                    onPress={onPress}
+                <LinearGradient
+                    colors={colors}
+                    style={styles.cardGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                 >
-                    <LinearGradient
-                        colors={colors}
-                        style={styles.cardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                    >
-                        <View style={styles.cardContent}>
-                            <View style={styles.cardIcon}>
-                                <Text style={[styles.iconText, { fontSize: size === 'large' ? 32 : 24 }]}>
-                                    {icon}
-                                </Text>
-                            </View>
-                            <View style={styles.cardTextContainer}>
-                                <Text style={[styles.cardTitle, { fontSize: size === 'large' ? 18 : 16 }]}>
-                                    {title}
-                                </Text>
-                                <Text style={[styles.cardSubtitle, { fontSize: size === 'large' ? 14 : 12 }]}>
-                                    {subtitle}
-                                </Text>
-                            </View>
+                    <View style={styles.cardContent}>
+                        {/* Icon Container */}
+                        <View style={styles.cardIcon}>
+                            <Text style={[styles.iconText, { fontSize: size === 'large' ? 32 : 24 }]}>
+                                {icon}
+                            </Text>
                         </View>
                         
-                        {/* Floating particles in cards */}
-                        <View style={styles.cardParticles}>
-                            {[...Array(3)].map((_, index) => (
-                                <View
-                                    key={index}
-                                    style={[
-                                        styles.cardParticle,
-                                        {
-                                            top: `${20 + Math.random() * 60}%`,
-                                            right: `${10 + Math.random() * 30}%`,
-                                            opacity: 0.3,
-                                        },
-                                    ]}
-                                />
-                            ))}
+                        {/* Text Container - SEPARATE from icon */}
+                        <View style={styles.cardTextContainer}>
+                            <Text style={[styles.cardTitle, { fontSize: size === 'large' ? 18 : 16 }]}>
+                                {title}
+                            </Text>
+                            <Text style={[styles.cardSubtitle, { fontSize: size === 'large' ? 14 : 12 }]}>
+                                {subtitle}
+                            </Text>
                         </View>
-                    </LinearGradient>
-                </Pressable>
-            </Animated.View>
-        );
-    };
+                    </View>
+                    
+                    {/* Floating particles in cards */}
+                    <View style={styles.cardParticles}>
+                        {[...Array(3)].map((_, index) => (
+                            <View
+                                key={index}
+                                style={[
+                                    styles.cardParticle,
+                                    {
+                                        top: `${20 + Math.random() * 60}%`,
+                                        right: `${10 + Math.random() * 30}%`,
+                                        opacity: 0.3,
+                                    },
+                                ]}
+                            />
+                        ))}
+                    </View>
+                </LinearGradient>
+            </Pressable>
+        </Animated.View>
+    );
+};
 
     return (
         <SafeAreaView style={styles.container}>
@@ -260,10 +271,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                 end={{ x: 1, y: 1 }}
             >
                 <ScrollView
-                    style={styles.scrollView}
+                    style={[styles.scrollView, { flex: 1 }]} // Ensure flex: 1
                     contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
+                    showsVerticalScrollIndicator={true} // true for web
                     bounces={true}
+                    nestedScrollEnabled={true} // web compatibility
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -693,7 +705,7 @@ const styles = StyleSheet.create({
     },
     
     featuresSection: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 20, // Use fixed smaller padding for mobile
         marginBottom: 30,
     },
     
@@ -712,16 +724,17 @@ const styles = StyleSheet.create({
     },
     
     featuresGrid: {
-        gap: 15,
+        gap: 20,
+        paddingHorizontal: Dimensions.get('window').width < 400 ? 0 : 0,
     },
     
-    // Proper medium cards row layout
-    mediumCardsRow: {
+        // Proper medium cards row layout
+        mediumCardsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'stretch',
         gap: 15,
         width: '100%',
+        flexWrap: 'wrap',
     },
     
     featureCard: {
@@ -741,13 +754,16 @@ const styles = StyleSheet.create({
     
     largeCard: {
         width: '100%',
-        height: 140,
+        height: 120,
     },
     
     mediumCard: {
-        flex: 1,
-        height: 120,
-        minWidth: 0, // Ensures flex child doesn't overflow
+    // Change from fixed width to flexible
+    width: Dimensions.get('window').width < 400 ? '100%' : '48%',
+    height: 95,
+    // Add minWidth to prevent too narrow cards
+    minWidth: Dimensions.get('window').width < 400 ? '100%' : 0,
+    marginBottom: Dimensions.get('window').width < 400 ? 10 : 0,
     },
     
     cardTouchable: {
@@ -759,14 +775,16 @@ const styles = StyleSheet.create({
     cardGradient: {
         flex: 1,
         borderRadius: 20,
-        padding: 20,
+        padding: 18,
         position: 'relative',
     },
     
     cardContent: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: Dimensions.get('window').width < 400 ? 12 : 18,
     },
     
     cardIcon: {
@@ -779,10 +797,12 @@ const styles = StyleSheet.create({
     
     cardTextContainer: {
         flex: 1,
+        minWidth: 0, // Prevents text overflow
+        paddingRight: 5,
     },
     
     cardTitle: {
-        fontSize: 18,
+        fontSize: Dimensions.get('window').width < 400 ? 16 : 18,
         fontWeight: '600',
         color: '#FFFFFF',
         marginBottom: 5,
@@ -796,7 +816,7 @@ const styles = StyleSheet.create({
     },
     
     cardSubtitle: {
-        fontSize: 14,
+        fontSize: Dimensions.get('window').width < 400 ? 12 : 14,
         fontWeight: '300',
         color: 'rgba(255, 255, 255, 0.9)',
     },
