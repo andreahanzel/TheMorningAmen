@@ -1,0 +1,2 @@
+// Here the PrayerContext will be created and exported that will be used to provide global state to the Prayer component.
+// This file will be the part of the PrayerContext component, which manages the state and context for prayer-related functionalities in the application.

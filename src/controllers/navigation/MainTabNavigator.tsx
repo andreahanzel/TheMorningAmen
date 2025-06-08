@@ -1,6 +1,5 @@
 // src/controllers/navigation/MainTabNavigator.tsx
-// Features: Bottom tabs with beautiful icons, gradient backgrounds, and smooth animations
-// Connects all main screens with professional mobile navigation
+// Updated to connect all new screens properly
 
 import React from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
@@ -13,23 +12,12 @@ import { BlurView } from 'expo-blur';
 import { HomeScreen } from '../../views/screens/main/HomeScreen';
 import { DevotionsScreen } from '../../views/screens/content/DevotionsScreen';
 import { DevotionDetailScreen } from '../../views/screens/main/DevotionDetailScreen';
+import { VideoGalleryScreen } from '../../views/screens/content/VideoGalleryScreen';
+import { PrayerWallScreen } from '../../views/screens/content/PrayerWallScreen';
+import { VerseOfDayScreen } from '../../views/screens/content/VerseOfDayScreen';
+import { AboutScreen } from '../../views/screens/community/AboutScreen';
 
-
-// Placeholder screens
-const PrayerWallScreen = () => (
-    <LinearGradient colors={['#ff9a56', '#ff6b35', '#f7931e']} style={styles.placeholderContainer}>
-        <Text style={styles.placeholderText}>🙏 Prayer Wall</Text>
-        <Text style={styles.placeholderSubtext}>Share your prayers</Text>
-    </LinearGradient>
-);
-
-const VideoGalleryScreen = () => (
-    <LinearGradient colors={['#ff9a56', '#ff6b35', '#f7931e']} style={styles.placeholderContainer}>
-        <Text style={styles.placeholderText}>🎥 Video Gallery</Text>
-        <Text style={styles.placeholderSubtext}>Inspirational videos</Text>
-    </LinearGradient>
-);
-
+// Profile placeholder - you can create this later
 const ProfileScreen = () => (
     <LinearGradient colors={['#ff9a56', '#ff6b35', '#f7931e']} style={styles.placeholderContainer}>
         <Text style={styles.placeholderText}>👤 Profile</Text>
@@ -66,6 +54,71 @@ const DevotionsStackNavigator = () => {
         >
             <Stack.Screen name="DevotionsList" component={DevotionsScreen} />
             <Stack.Screen name="DevotionDetail" component={DevotionDetailScreen} />
+        </Stack.Navigator>
+    );
+};
+
+// STACK NAVIGATOR FOR VIDEOS
+const VideosStackNavigator = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                cardStyle: { flex: 1 },
+            }}
+        >
+            <Stack.Screen name="VideoGallery" component={VideoGalleryScreen} />
+        </Stack.Navigator>
+    );
+};
+
+// STACK NAVIGATOR FOR PRAYER
+const PrayerStackNavigator = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                cardStyle: { flex: 1 },
+            }}
+        >
+            <Stack.Screen name="PrayerWall" component={PrayerWallScreen} />
+        </Stack.Navigator>
+    );
+};
+
+// STACK NAVIGATOR FOR HOME (with all features accessible)
+const HomeStackNavigator = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                cardStyle: { flex: 1 },
+            }}
+        >
+            <Stack.Screen name="HomeMain" component={HomeScreen} />
+            <Stack.Screen name="VerseOfDay" component={VerseOfDayScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
+            {/* Add other screens that can be accessed from Home */}
+        </Stack.Navigator>
+    );
+};
+
+// STACK NAVIGATOR FOR PROFILE
+const ProfileStackNavigator = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                cardStyle: { flex: 1 },
+            }}
+        >
+            <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
+            {/* Add settings and other profile-related screens here */}
         </Stack.Navigator>
     );
 };
@@ -125,15 +178,15 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                         // Define icons for each tab
                         const getTabIcon = (routeName: string) => {
                             switch (routeName) {
-                                case 'Home':
+                                case 'HomeStack':
                                     return '🏠';
-                                case 'DevotionsStack': // Updated to match the stack name
+                                case 'DevotionsStack':
                                     return '📖';
-                                case 'PrayerWall':
+                                case 'PrayerStack':
                                     return '🙏';
-                                case 'Videos':
+                                case 'VideosStack':
                                     return '🎥';
-                                case 'Profile':
+                                case 'ProfileStack':
                                     return '👤';
                                 default:
                                     return '•';
@@ -142,15 +195,15 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
 
                         const getTabName = (routeName: string) => {
                             switch (routeName) {
-                                case 'Home':
+                                case 'HomeStack':
                                     return 'Home';
-                                case 'DevotionsStack': // Updated to match the stack name
+                                case 'DevotionsStack':
                                     return 'Devotions';
-                                case 'PrayerWall':
+                                case 'PrayerStack':
                                     return 'Prayer';
-                                case 'Videos':
+                                case 'VideosStack':
                                     return 'Videos';
-                                case 'Profile':
+                                case 'ProfileStack':
                                     return 'Profile';
                                 default:
                                     return routeName;
@@ -179,21 +232,6 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
     );
 };
 
-const HomeStackNavigator = () => {
-    return (
-        <Stack.Navigator
-            screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                cardStyle: { flex: 1 }, // Ensure the card style takes full height
-            }}
-        >
-            <Stack.Screen name="HomeMain" component={HomeScreen} />
-            {/* We'll add other screens here as you create them */}
-        </Stack.Navigator>
-    );
-};
-
 export const MainTabNavigator: React.FC = () => {
     return (
         <Tab.Navigator
@@ -203,14 +241,13 @@ export const MainTabNavigator: React.FC = () => {
             }}
         >
             <Tab.Screen 
-                name="Home" 
-                component={HomeStackNavigator}  // Use the stack navigator
+                name="HomeStack" 
+                component={HomeStackNavigator}
                 options={{
-                    tabBarIcon: ({ color }) => <Text>🏠</Text>,
+                    tabBarLabel: 'Home',
                 }}
             />
             
-            {/* Use the stack navigator instead of the screen directly */}
             <Tab.Screen 
                 name="DevotionsStack" 
                 component={DevotionsStackNavigator}
@@ -220,24 +257,24 @@ export const MainTabNavigator: React.FC = () => {
             />
             
             <Tab.Screen 
-                name="PrayerWall" 
-                component={PrayerWallScreen}
+                name="PrayerStack" 
+                component={PrayerStackNavigator}
                 options={{
                     tabBarLabel: 'Prayer',
                 }}
             />
             
             <Tab.Screen 
-                name="Videos" 
-                component={VideoGalleryScreen}
+                name="VideosStack" 
+                component={VideosStackNavigator}
                 options={{
                     tabBarLabel: 'Videos',
                 }}
             />
             
             <Tab.Screen 
-                name="Profile" 
-                component={ProfileScreen}
+                name="ProfileStack" 
+                component={ProfileStackNavigator}
                 options={{
                     tabBarLabel: 'Profile',
                 }}

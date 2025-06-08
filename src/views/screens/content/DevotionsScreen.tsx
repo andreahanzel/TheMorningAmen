@@ -98,6 +98,7 @@ interface DevotionsScreenProps {
     navigation: any;
 }
 
+// This screen displays a list of daily devotions with animations, filtering, and interactive features.
 export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) => {
     const [devotions, setDevotions] = useState(devotionsData);
     const [refreshing, setRefreshing] = useState(false);

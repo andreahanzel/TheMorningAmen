@@ -1,0 +1,1 @@
+// This file will be the contact form component, which will be used to collect user feedback or inquiries in the application.

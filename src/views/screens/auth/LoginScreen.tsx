@@ -157,6 +157,7 @@ import {
         }
     };
 
+    // Handle guest login with confirmation
     const handleGuestLogin = () => {
         Alert.alert(
         'Continue as Guest?',
@@ -226,7 +227,7 @@ import {
                         </TouchableOpacity>
                         <View style={styles.miniLogoContainer}>
                             <View style={styles.miniLogo}>
-                               <LinearGradient
+                            <LinearGradient
                                     colors={['#ffeb3b', '#ff6b35', '#f7931e'] as const}
                                     style={styles.miniLogoGradient}
                                 >

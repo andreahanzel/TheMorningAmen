@@ -1,6 +1,7 @@
 // src/views/screens/auth/AuthInput.tsx
 // Reusable input component for authentication screens
-// This component provides consistent styling and validation feedback across all auth screens
+// This file defines the AuthInput component
+// It provides a customizable input field with validation, error handling, and optional password visibility toggle
 
 import React from 'react';
 import {
@@ -31,6 +32,7 @@ interface AuthInputProps extends TextInputProps {
     inputStyle?: ViewStyle;
 }
 
+// AuthInput component
 export const AuthInput: React.FC<AuthInputProps> = ({
     label,
     value,
@@ -113,6 +115,7 @@ export const AuthInput: React.FC<AuthInputProps> = ({
     );
 };
 
+// Styles for the AuthInput component
 const styles = StyleSheet.create({
     container: {
         marginBottom: 18,

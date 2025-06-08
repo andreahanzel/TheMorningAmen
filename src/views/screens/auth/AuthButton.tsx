@@ -1,6 +1,8 @@
 // src/views/screens/auth/AuthButton.tsx
+// This file defines the AuthButton component
 // Reusable button component for authentication screens
-// This component provides consistent styling and behavior across all auth screens
+// This component provides a customizable button with various styles and functionalities
+// It supports different variants, sizes, and loading states
 
 import React from 'react';
 import {
@@ -27,6 +29,8 @@ export interface AuthButtonProps {
     gradientColors?: readonly string[];
 }
 
+// AuthButton component
+// This component renders a button with customizable styles and behaviors
 export const AuthButton: React.FC<AuthButtonProps> = ({
     title,
     onPress,

@@ -1,5 +1,5 @@
 // App.tsx 
-// This is the main entry point for your React Native app.
+// This is the main entry point for the React Native app.
 // It initializes the app, loads custom fonts, and displays the main content.
 
 import React, { useState, useRef } from 'react';
@@ -160,7 +160,7 @@ ripple: {
     pointerEvents: 'none',
 },
 
-// Main App Styles (temporary - replace with your actual main app)
+// Main App Styles 
 mainAppContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -398,13 +398,12 @@ export default function App() {
     const handleSuccessfulAuth = () => {
         setIsAuthenticated(true);
         navigateToScreen('main');
-        // Here later it navigates to your main app screens
+        // Here later it navigates to the main app screens
         console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
     };
 
     const handleSocialLogin = (provider: string) => {
         console.log(`🔐 ${provider} login initiated...`);
-        // Add your social login logic here
         // For now, simulate successful login
         setTimeout(() => {
         handleSuccessfulAuth();

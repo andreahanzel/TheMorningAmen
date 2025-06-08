@@ -1,5 +1,5 @@
 // src/views/screens/auth/SignUpScreen.tsx
-// This file is part of the TMA project.
+// This file is part of the TMA project. - This file defines the SignUpScreen component that allows users to register for the application.
 // TMA is a React Native application designed to provide a seamless user experience.
 
 // Import necessary libraries and components

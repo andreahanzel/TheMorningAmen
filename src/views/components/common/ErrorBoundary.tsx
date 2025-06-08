@@ -1,0 +1,1 @@
+// This file will determine the error boundary component for the application, which will catch JavaScript errors anywhere in the child component tree and log those errors, and display a fallback UI.

@@ -1,5 +1,6 @@
 // src/controllers/hooks/useAuth.ts
 // Custom hook for authentication with additional utilities
+// This file defines a custom hook for managing authentication in the application, providing functionalities to log in, sign up, social login, logout, and reset password with feedback mechanisms.
 
 import { useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';

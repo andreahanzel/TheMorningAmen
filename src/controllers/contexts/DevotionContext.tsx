@@ -1,0 +1,2 @@
+// Here the DevotionContext will be created and exported that will be used to provide global state to the Devotion component.
+// This file will be functioning for the DevotionContext component, which manages the state and context for devotion-related functionalities in the application.

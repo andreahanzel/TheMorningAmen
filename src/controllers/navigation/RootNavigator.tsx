@@ -1,6 +1,7 @@
 // src/controllers/navigation/RootNavigator.tsx
 // Root Navigator that manages authentication and main app navigation
 // Routes between Auth screens and Main app based on login status
+// This file defines the main navigation structure of the app, including authentication and main tabs
 
     import React, { useState, useEffect } from 'react';
     import { View, StyleSheet } from 'react-native';
@@ -8,13 +9,13 @@
     import { createStackNavigator } from '@react-navigation/stack';
     import AsyncStorage from '@react-native-async-storage/async-storage';
 
-    // Import your screens
+    // Import screens
     import { LoginScreen } from '../../views/screens/auth/LoginScreen';
     import { SignUpScreen } from '../../views/screens/auth/SignUpScreen';
     import { ForgotPasswordScreen } from '../../views/screens/auth/ForgotPasswordScreen';
     import { MainTabNavigator } from './MainTabNavigator';
 
-    // Import your components if you have them
+    // Import components
     import { LoadingSpinner } from '../../views/components/common/LoadingSpinner';
 
     // Navigation types

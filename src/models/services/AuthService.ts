@@ -75,7 +75,7 @@ class AuthService {
   // Email/Password Login
   async loginWithEmail(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      // Simulate API call - replace with your actual API
+      // Simulate API call - actual API calls would go here
       await this.simulateNetworkDelay();
 
       // Basic validation

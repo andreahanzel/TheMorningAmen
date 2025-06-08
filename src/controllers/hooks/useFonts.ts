@@ -1,5 +1,6 @@
 // src\controllers\hooks\useFonts.ts
-// This file defines a custom hook to load and manage fonts in the app.
+// This file defines a custom hook to load and manage fonts in the app/
+// This hook uses the `useFonts` hook from `expo-font` to load a set of fonts from Google Fonts.
 
 import { useFonts } from 'expo-font';
 import {

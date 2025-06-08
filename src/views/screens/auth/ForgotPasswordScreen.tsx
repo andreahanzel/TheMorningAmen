@@ -1,5 +1,5 @@
 // src/views/screens/auth/ForgotPasswordScreen.tsx
-// Forgot Password Screen for The Morning Amen app
+// Forgot Password Screen for The Morning Amen app -this screen allows users to reset their password by entering their email address.
 // Features: Email validation, user existence check, animated UI, and comprehensive messaging
 
 import React, { useState, useRef } from 'react';
@@ -35,6 +35,7 @@ interface ForgotPasswordScreenProps {
   onSuccess: () => void;
 }
 
+// ForgotPasswordScreen component
 export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   onBack,
   onSuccess,
@@ -74,11 +75,14 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
     ]).start();
   }, []);
 
+  // Email validation and user existence check
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
   };
 
+  // Check if user exists in AsyncStorage
+  // This function retrieves the registered users from AsyncStorage and checks if the provided email exists
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
       const storedUsers = await AsyncStorage.getItem('@registered_users');
@@ -92,6 +96,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
     }
   };
 
+  // Handle password reset
+  // This function validates the email input, checks if the user exists, and sends a reset link if valid
   const handleResetPassword = async () => {
     const errors: {[key: string]: string} = {};
     

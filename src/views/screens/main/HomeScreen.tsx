@@ -1,5 +1,8 @@
 // src/views/screens/main/HomeScreen.tsx
-// Fixed layout with proper card sizing and scrolling
+// HomeScreen component serves as the main landing page for users after logging in.
+// It displays a personalized greeting, today's verse, and various features like devotions, prayer wall, video gallery, etc.
+// The screen is designed to be responsive, adapting to different screen sizes and orientations.
+// The screen features animations, a category filter, and video playback functionality.
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -18,6 +21,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+    Alert,
+} from 'react-native';
 
 // Define the User interface
 interface User {
@@ -123,6 +129,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         }, 1000);
     }, []);
 
+    // Get greeting based on current time
     const getGreeting = () => {
         const hour = currentTime.getHours();
         if (hour < 12) return 'Good Morning';
@@ -130,6 +137,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         return 'Good Evening';
     };
 
+    // Format date string for display
     const getDateString = () => {
         return currentTime.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -139,35 +147,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         });
     };
 
+    // Handle card press navigation with animations
     const handleCardPress = (screen: string) => {
-        const scaleDown = Animated.timing(scaleAnim, {
-            toValue: 0.95,
-            duration: 100,
-            useNativeDriver: true,
-        });
-        
-        const scaleUp = Animated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-        });
+    const scaleDown = Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+    });
+    
+    const scaleUp = Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+    });
 
-        Animated.sequence([scaleDown, scaleUp]).start(() => {
-            // For now, just navigate to existing tab screens
-            if (screen === 'Devotions') {
+    Animated.sequence([scaleDown, scaleUp]).start(() => {
+        // Navigate to the correct screens
+        switch (screen) {
+            case 'Devotions':
                 navigation.navigate('DevotionsStack');
-            } else if (screen === 'PrayerWall') {
-                navigation.navigate('PrayerWall');
-            } else if (screen === 'VideoGallery') {
-                navigation.navigate('Videos');
-            } else if (screen === 'Profile') {
-                navigation.navigate('Profile');
-            } else {
-                // For screens that don't exist yet, show an alert
+                break;
+            case 'PrayerWall':
+                navigation.navigate('PrayerStack');
+                break;
+            case 'VideoGallery':
+                navigation.navigate('VideosStack');
+                break;
+            case 'VerseOfDay':
+                navigation.navigate('VerseOfDay');
+                break;
+            case 'Affirmations':
+                // You can create this screen later or navigate to VerseOfDay for now
+                navigation.navigate('VerseOfDay');
+                break;
+            case 'Profile':
+                navigation.navigate('ProfileStack');
+                break;
+            case 'About':
+                navigation.navigate('About');
+                break;
+            case 'Meditation':
+            case 'Favorites':
+            case 'Settings':
+                // These will be created in future modules
+                console.log(`${screen} - Coming in future updates!`);
+                Alert.alert('Coming Soon! 🚀', `${screen} feature will be available in future updates.`);
+                break;
+            default:
                 console.log(`Navigation to ${screen} - Screen coming soon!`);
-            }
-        });
-    };
+                break;
+        }
+    });
+};
 
 const FeatureCard = ({ 
     title, 

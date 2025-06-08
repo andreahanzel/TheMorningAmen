@@ -1,0 +1,2 @@
+// Here the AppContext will be created and exported that will be used to provide global state to the application that
+//  will be used to manage the application state and provide it to the components that need it.

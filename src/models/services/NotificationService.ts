@@ -1,0 +1,1 @@
+// This file will be responsible for managing notifications in the application, providing functionalities to add, remove, and clear notifications.

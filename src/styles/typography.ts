@@ -1,5 +1,6 @@
 // src/styles/typography.ts
-// Typography system inspired by The Morning Amen logo
+// Typography system for The Morning Amen logo
+// This file defines the typography styles used in the app, including font families, sizes, weights, and predefined text styles that match the logo aesthetic.
 
 export const typography = {
   // Font families

@@ -1,5 +1,8 @@
 // src/controllers/hooks/useStorage.ts
 // Custom hook for AsyncStorage operations with error handling and type safety
+// This file defines a custom hook for managing storage operations using AsyncStorage in a React Native application.
+// It provides functionalities to store, retrieve, and remove data with type safety and error handling.
+
 
 import { useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';

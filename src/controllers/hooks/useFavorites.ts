@@ -1,0 +1,1 @@
+// This file will be the favorites hook, which manages the state and context for favorites-related functionalities in the application that will be used to provide global state to the application that will be used to manage the application state and provide it to the components that need it.
