@@ -177,7 +177,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}>🎯</Text>
+                                <Text style={styles.cardIcon}></Text>
                                 <Text style={styles.cardTitle}>Our Mission</Text>
                                 <Text style={styles.cardText}>
                                     To inspire and uplift people in their daily spiritual journey through meaningful 
@@ -210,7 +210,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}>💝</Text>
+                                <Text style={styles.cardIcon}></Text>
                                 <Text style={styles.cardTitle}>Andrea's Heart</Text>
                                 <Text style={styles.cardText}>
                                     Hi! I'm Andrea, and The Morning Amen was born from my personal journey of 
@@ -249,27 +249,27 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}>✨</Text>
+                                <Text style={styles.cardIcon}></Text>
                                 <Text style={styles.cardTitle}>What Makes Us Special</Text>
                                 <View style={styles.featuresList}>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}>📖</Text>
+                                        <Text style={styles.featureEmoji}></Text>
                                         <Text style={styles.featureText}>Daily devotions written with heart and scripture</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}>🎥</Text>
+                                        <Text style={styles.featureEmoji}></Text>
                                         <Text style={styles.featureText}>Inspirational video messages for encouragement</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}>🙏</Text>
+                                        <Text style={styles.featureEmoji}></Text>
                                         <Text style={styles.featureText}>Prayer wall for community support and unity</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}>💭</Text>
+                                        <Text style={styles.featureEmoji}></Text>
                                         <Text style={styles.featureText}>Daily verses with reflection and application</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}>💝</Text>
+                                        <Text style={styles.featureEmoji}></Text>
                                         <Text style={styles.featureText}>Positive affirmations based on God's truth</Text>
                                     </View>
                                 </View>
@@ -299,17 +299,17 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,235,59,0.3)', 'rgba(255,152,0,0.2)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}>🚀</Text>
+                                <Text style={styles.cardIcon}></Text>
                                 <Text style={styles.cardTitle}>Coming Soon</Text>
                                 <Text style={styles.cardText}>
                                     We're just getting started! Future updates will include:
                                 </Text>
                                 <View style={styles.comingSoonList}>
-                                    <Text style={styles.comingSoonItem}>📚 Digital bookstore with inspiring reads</Text>
-                                    <Text style={styles.comingSoonItem}>💰 Charity platform to give back</Text>
-                                    <Text style={styles.comingSoonItem}>👥 Community groups and discussions</Text>
-                                    <Text style={styles.comingSoonItem}>📊 Personal spiritual growth tracking</Text>
-                                    <Text style={styles.comingSoonItem}>🔔 Smart prayer reminders</Text>
+                                    <Text style={styles.comingSoonItem}> Digital bookstore with inspiring reads</Text>
+                                    <Text style={styles.comingSoonItem}> Charity platform to give back</Text>
+                                    <Text style={styles.comingSoonItem}> Community groups and discussions</Text>
+                                    <Text style={styles.comingSoonItem}> Personal spiritual growth tracking</Text>
+                                    <Text style={styles.comingSoonItem}> Smart prayer reminders</Text>
                                 </View>
                             </LinearGradient>
                         </BlurView>
@@ -370,7 +370,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                         ]}
                     >
                         <Text style={styles.footerText}>
-                            Made with ❤️ and lots of prayer
+                            Made with heart and lots of prayer
                         </Text>
                         <Text style={styles.footerText}>
                             Version 1.0.0 • Module 2 Project

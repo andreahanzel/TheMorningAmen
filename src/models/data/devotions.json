@@ -10,7 +10,6 @@
         "verseText": "Be still and know that I am God; I will be exalted among the nations, I will be exalted in the earth.",
         "author": "Andrea Toreki",
         "category": "Peace",
-        "image": "🌊",
         "isFavorite": false
     },
     {
@@ -24,7 +23,6 @@
         "verseText": "Give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
         "author": "Andrea Toreki",
         "category": "Gratitude",
-        "image": "🙏",
         "isFavorite": true
     },
     {
@@ -38,7 +36,6 @@
         "verseText": "Now faith is confidence in what we hope for and assurance about what we do not see.",
         "author": "Andrea Toreki",
         "category": "Faith",
-        "image": "✨",
         "isFavorite": false
     },
     {
@@ -52,7 +49,6 @@
         "verseText": "We love because he first loved us.",
         "author": "Andrea Toreki",
         "category": "Love",
-        "image": "💝",
         "isFavorite": false
     },
     {
@@ -66,7 +62,6 @@
         "verseText": "The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
         "author": "Andrea Toreki",
         "category": "Hope",
-        "image": "🌅",
         "isFavorite": true
     },
     {
@@ -80,7 +75,6 @@
         "verseText": "But he said to me, 'My grace is sufficient for you, for my power is made perfect in weakness.'",
         "author": "Andrea Toreki",
         "category": "Strength",
-        "image": "💪",
         "isFavorite": false
     },
     {
@@ -94,7 +88,6 @@
         "verseText": "Therefore do not worry about tomorrow, for tomorrow will worry about itself. Each day has enough trouble of its own.",
         "author": "Andrea Toreki",
         "category": "Mindfulness",
-        "image": "🎁",
         "isFavorite": true
     },
     {
@@ -108,7 +101,6 @@
         "verseText": "But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.",
         "author": "Andrea Toreki",
         "category": "Patience",
-        "image": "⏰",
         "isFavorite": false
     }
 ]

@@ -17,6 +17,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { SearchIcon, StarIcon } from '../../components/icons/CustomIcons';
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -108,6 +111,8 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
     const cardAnims = useRef(devotions.map(() => new Animated.Value(0))).current;
+    const iconRotateAnims = useRef(devotions.map(() => new Animated.Value(0))).current;
+
 
     useEffect(() => {
         startAnimations();
@@ -168,6 +173,26 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
         ? devotions 
         : devotions.filter(d => d.category === selectedCategory);
 
+        // Animated icon rotations
+    const iconAnimations = iconRotateAnims.map((anim) =>
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(anim, {
+                    toValue: 1,
+                    duration: 4000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(anim, {
+                    toValue: 0,
+                    duration: 4000,
+                    useNativeDriver: true,
+                }),
+            ])
+        )
+    );
+
+iconAnimations.forEach(anim => anim.start());
+
     // Devotion card component
     const DevotionCard = ({ devotion, index }: { devotion: any; index: number }) => (
     <Animated.View
@@ -217,18 +242,34 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                         style={styles.favoriteButton}
                         onPress={() => toggleFavorite(devotion.id)}
                     >
-                        <Text style={[
-                            styles.favoriteIcon,
-                            { color: devotion.isFavorite ? '#FFD700' : 'rgba(255,255,255,0.8)' }
-                        ]}>
-                            {devotion.isFavorite ? '⭐' : '☆'}
-                        </Text>
+                        <StarIcon 
+                            size={20} 
+                            color={devotion.isFavorite ? '#FFD700' : 'rgba(255,255,255,0.8)'} 
+                            filled={devotion.isFavorite} 
+                        />
                     </TouchableOpacity>
                 </View>
 
                 {/* Content */}
                 <View style={styles.cardContent}>
-                    <Text style={styles.devotionEmoji}>{devotion.image}</Text>
+                    <View style={styles.devotionIconContainer}>
+                        <Animated.View 
+                            style={[
+                                styles.devotionIconWrapper,
+                                {
+                                    transform: [{ rotate: iconRotateAnims[index].interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['0deg', '360deg'],
+                                    })}],
+                                },
+                            ]}
+                        >
+                            {(() => {
+                                const CustomIcon = SpiritualIcons[devotion.category as keyof typeof SpiritualIcons] || SpiritualIcons.Joy;
+                                return <CustomIcon size={48} gradient={true} />;
+                            })()}
+                        </Animated.View>
+                    </View>
                     <Text style={styles.devotionTitle}>{devotion.title}</Text>
                     <Text style={styles.devotionExcerpt}>{devotion.excerpt}</Text>
                     
@@ -237,7 +278,6 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                         <Text style={styles.verseReference}>- {devotion.verse}</Text>
                     </View>
                 </View>
-
                 {/* Footer */}
                 <View style={styles.cardFooter}>
                     <View style={styles.authorInfo}>
@@ -317,7 +357,7 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                                 colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                                 style={styles.searchGradient}
                             >
-                                <Text style={styles.searchIcon}>🔍</Text>
+                                <SearchIcon size={20} color="#FFFFFF" />
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
@@ -563,9 +603,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-    devotionEmoji: {
-        fontSize: 48,
+    devotionIconContainer: {
         marginBottom: 16,
+        alignItems: 'center',
+    },
+
+    devotionIconWrapper: {
+        padding: 8,
     },
 
     devotionTitle: {

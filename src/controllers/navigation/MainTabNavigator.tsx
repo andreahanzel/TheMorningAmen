@@ -16,6 +16,8 @@ import { VideoGalleryScreen } from '../../views/screens/content/VideoGalleryScre
 import { PrayerWallScreen } from '../../views/screens/content/PrayerWallScreen';
 import { VerseOfDayScreen } from '../../views/screens/content/VerseOfDayScreen';
 import { AboutScreen } from '../../views/screens/community/AboutScreen';
+import { NavigationIcons } from '../../views/components/icons/NavigationIcons';
+
 
 // Profile placeholder - you can create this later
 const ProfileScreen = () => (
@@ -106,6 +108,24 @@ const HomeStackNavigator = () => {
     );
 };
 
+// Define icons for each tab
+const getTabIcon = (routeName: string, focused: boolean) => {
+    switch (routeName) {
+        case 'HomeStack':
+            return <NavigationIcons.Home size={28} focused={focused} />;
+        case 'DevotionsStack':
+            return <NavigationIcons.Devotions size={28} focused={focused} />;
+        case 'PrayerStack':
+            return <NavigationIcons.Prayer size={28} focused={focused} />;
+        case 'VideosStack':
+            return <NavigationIcons.Videos size={28} focused={focused} />;
+        case 'ProfileStack':
+            return <NavigationIcons.Profile size={28} focused={focused} />;
+        default:
+            return <NavigationIcons.Home size={28} focused={focused} />;
+    }
+};
+
 // STACK NAVIGATOR FOR PROFILE
 const ProfileStackNavigator = () => {
     return (
@@ -123,24 +143,24 @@ const ProfileStackNavigator = () => {
     );
 };
 
-// Custom Tab Bar Icon Component
-const TabIcon = ({ name, focused, icon }: { name: string; focused: boolean; icon: string }) => {
-    return (
-        <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
-            {focused && (
-                <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
-                    style={styles.tabIconBackground}
-                />
-            )}
-            <Text style={[styles.tabIcon, focused && styles.tabIconTextFocused]}>
-                {icon}
-            </Text>
-            <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>
-                {name}
-            </Text>
-        </View>
-    );
+    // Custom Tab Bar Icon Component
+    const TabIcon = ({ name, focused, routeName }: { name: string; focused: boolean; routeName: string }) => {
+        return (
+            <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+                {focused && (
+                    <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                        style={styles.tabIconBackground}
+                    />
+                )}
+                <View style={[styles.iconWrapper, focused && styles.iconWrapperFocused]}>
+                    {getTabIcon(routeName, focused)}
+                </View>
+                <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>
+                    {name}
+                </Text>
+            </View>
+        );
 };
 
 // Custom Tab Bar Component
@@ -175,24 +195,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                             });
                         };
 
-                        // Define icons for each tab
-                        const getTabIcon = (routeName: string) => {
-                            switch (routeName) {
-                                case 'HomeStack':
-                                    return '🏠';
-                                case 'DevotionsStack':
-                                    return '📖';
-                                case 'PrayerStack':
-                                    return '🙏';
-                                case 'VideosStack':
-                                    return '🎥';
-                                case 'ProfileStack':
-                                    return '👤';
-                                default:
-                                    return '•';
-                            }
-                        };
-
+                        // Function to get the appropriate icon based on the route name
                         const getTabName = (routeName: string) => {
                             switch (routeName) {
                                 case 'HomeStack':
@@ -221,7 +224,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                                 <TabIcon
                                     name={getTabName(route.name)}
                                     focused={isFocused}
-                                    icon={getTabIcon(route.name)}
+                                    routeName={route.name}
                                 />
                             </TouchableOpacity>
                         );
@@ -403,5 +406,15 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.3)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
+    },
+
+    iconWrapper: {
+        marginBottom: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    iconWrapperFocused: {
+        transform: [{ scale: 1.1 }],
     },
 });

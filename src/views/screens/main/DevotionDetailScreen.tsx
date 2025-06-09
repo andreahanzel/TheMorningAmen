@@ -17,6 +17,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { BackIcon, ShareIcon, StarIcon } from '../../components/icons/CustomIcons';
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,12 +41,13 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
     const slideAnim = useRef(new Animated.Value(50)).current;
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
     const progressAnim = useRef(new Animated.Value(0)).current;
+    const iconRotateAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         startAnimations();
     }, []);
 
-    const startAnimations = () => {
+        const startAnimations = () => {
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -61,6 +66,22 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                 useNativeDriver: true,
             }),
         ]).start();
+
+        // Start icon rotation animation
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(iconRotateAnim, {
+                    toValue: 1,
+                    duration: 4000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(iconRotateAnim, {
+                    toValue: 0,
+                    duration: 4000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
     };
 
     // Handle scroll event to update reading progress
@@ -122,7 +143,7 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                     colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                                     style={styles.backButtonGradient}
                                 >
-                                    <Text style={styles.backIcon}>←</Text>
+                                    <BackIcon size={20} color="#FFFFFF" />
                                 </LinearGradient>
                             </TouchableOpacity>
 
@@ -135,7 +156,7 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                         colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                                         style={styles.actionButtonGradient}
                                     >
-                                        <Text style={styles.actionIcon}>📤</Text>
+                                        <ShareIcon size={18} color="#FFFFFF" />
                                     </LinearGradient>
                                 </TouchableOpacity>
 
@@ -147,12 +168,11 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                         colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                                         style={styles.actionButtonGradient}
                                     >
-                                        <Text style={[
-                                            styles.actionIcon,
-                                            { color: isFavorite ? '#FFD700' : '#FFFFFF' }
-                                        ]}>
-                                            {isFavorite ? '⭐' : '☆'}
-                                        </Text>
+                                        <StarIcon 
+                                            size={18} 
+                                            color={isFavorite ? '#FFD700' : '#FFFFFF'} 
+                                            filled={isFavorite} 
+                                        />
                                     </LinearGradient>
                                 </TouchableOpacity>
                             </View>
@@ -205,7 +225,24 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                 colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
                                 style={styles.heroGradient}
                             >
-                                <Text style={styles.heroEmoji}>{devotion.image}</Text>
+                                <View style={styles.heroIconContainer}>
+                                    <Animated.View
+                                        style={[
+                                            styles.heroIconWrapper,
+                                            {
+                                                transform: [{ rotate: iconRotateAnim.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: ['0deg', '360deg'],
+                                                })}],
+                                            },
+                                        ]}
+                                    >
+                                        {(() => {
+                                            const CustomIcon = SpiritualIcons[devotion.category as keyof typeof SpiritualIcons] || SpiritualIcons.Joy;
+                                            return <CustomIcon size={64} gradient={true} />;
+                                        })()}
+                                    </Animated.View>
+                                </View>
                                 <Text style={styles.heroCategory}>{devotion.category}</Text>
                                 <Text style={styles.heroTitle}>{devotion.title}</Text>
                                 
@@ -283,7 +320,15 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                 colors={['rgba(255,235,59,0.2)', 'rgba(255,152,0,0.1)']}
                                 style={styles.reflectionGradient}
                             >
-                                <Text style={styles.reflectionTitle}>💭 Reflect & Apply</Text>
+                                <View style={styles.reflectionTitleContainer}>
+                                    <View style={styles.reflectionIconWrapper}>
+                                        {(() => {
+                                            const ReflectIcon = SpiritualIcons.Purpose; // Using Purpose icon (compass)
+                                            return <ReflectIcon size={20} gradient={true} />;
+                                        })()}
+                                    </View>
+                                    <Text style={styles.reflectionTitle}>Reflect & Apply</Text>
+                                </View>
                                 <View style={styles.questionContainer}>
                                     <Text style={styles.questionText}>
                                         • How can you apply this message to your current situation?
@@ -314,7 +359,15 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                                 colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
                                 style={styles.prayerGradient}
                             >
-                                <Text style={styles.prayerTitle}>🙏 Prayer</Text>
+                                <View style={styles.prayerTitleContainer}>
+                                    <View style={styles.prayerIconWrapper}>
+                                        {(() => {
+                                            const PrayIcon = SpiritualIcons.Peace; // Using Peace icon (praying hands)
+                                            return <PrayIcon size={20} gradient={true} />;
+                                        })()}
+                                    </View>
+                                    <Text style={styles.prayerTitle}>Prayer</Text>
+                                </View>
                                 <Text style={styles.prayerText}>
                                     "Heavenly Father, thank You for Your constant presence in my life. 
                                     Help me to trust in Your perfect timing and plan. Give me the 
@@ -521,9 +574,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    heroEmoji: {
-        fontSize: 64,
+    heroIconContainer: {
         marginBottom: 16,
+        alignItems: 'center',
+    },
+
+    heroIconWrapper: {
+        padding: 8,
     },
 
     heroCategory: {
@@ -666,17 +723,6 @@ const styles = StyleSheet.create({
         padding: 24,
     },
 
-    reflectionTitle: {
-        fontSize: 20,
-        fontFamily: 'Outfit_700Bold',
-        color: '#FFFFFF',
-        marginBottom: 16,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
-    },
-
     questionContainer: {
         gap: 12,
     },
@@ -703,17 +749,6 @@ const styles = StyleSheet.create({
 
     prayerGradient: {
         padding: 24,
-    },
-
-    prayerTitle: {
-        fontSize: 20,
-        fontFamily: 'Outfit_700Bold',
-        color: '#FFFFFF',
-        marginBottom: 16,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
 
     prayerText: {
@@ -816,4 +851,49 @@ const styles = StyleSheet.create({
     bottomSpacing: {
         height: 100,
     },
+
+    reflectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 12,
+},
+
+reflectionIconWrapper: {
+    padding: 4,
+},
+
+reflectionTitle: {
+    fontSize: 20,
+    fontFamily: 'Outfit_700Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+},
+
+prayerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 12,
+},
+
+prayerIconWrapper: {
+    padding: 4,
+},
+
+prayerTitle: {
+    fontSize: 20,
+    fontFamily: 'Outfit_700Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+},
+
 });

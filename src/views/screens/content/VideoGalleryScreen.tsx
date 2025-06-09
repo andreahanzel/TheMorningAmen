@@ -18,12 +18,19 @@ import {
     Platform,
     Linking,
     Alert,
+    TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { SearchIcon, StarIcon, PlayIcon } from '../../components/icons/CustomIcons';
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+import { WebView } from 'react-native-webview';
+import { Modal } from 'react-native';
+
 
 // Import video data
 import videosData from '../../../models/data/videos.json';
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,7 +38,6 @@ interface Video {
     id: string;
     title: string;
     description: string;
-    thumbnail: string;
     duration: string;
     videoUrl: string;
     category: string;
@@ -52,14 +58,22 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
     const [videos, setVideos] = useState<Video[]>(videosData);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [showVideoModal, setShowVideoModal] = useState(false);
+    const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchModal, setShowSearchModal] = useState(false);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
     const cardAnims = useRef(videos.map(() => new Animated.Value(0))).current;
+    const iconRotateAnims = useRef(videos.map(() => new Animated.Value(0))).current;
+    const iconScaleAnims = useRef(videos.map(() => new Animated.Value(0))).current;
+
 
     useEffect(() => {
         startAnimations();
+        startIconAnimations();
     }, []);
 
     const startAnimations = () => {
@@ -101,19 +115,85 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
         );
     };
 
+    // Function to convert YouTube URL to embed format
+    const convertToEmbedUrl = (url: string) => {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+    };
+
     // Play video function
     const playVideo = async (videoUrl: string, title: string) => {
-        try {
-            const supported = await Linking.canOpenURL(videoUrl);
-            if (supported) {
-                await Linking.openURL(videoUrl);
-            } else {
-                Alert.alert('Error', 'Unable to open video');
-            }
-        } catch (error) {
-            Alert.alert('Error', 'Unable to play video');
-        }
+        Alert.alert(
+            'Play Video',
+            'How would you like to watch this video?',
+            [
+                {
+                    text: 'Watch in App',
+                    onPress: () => {
+                        setSelectedVideoUrl(convertToEmbedUrl(videoUrl));
+                        setShowVideoModal(true);
+                    }
+                },
+                {
+                    text: 'Open YouTube',
+                    onPress: async () => {
+                        try {
+                            const supported = await Linking.canOpenURL(videoUrl);
+                            if (supported) {
+                                await Linking.openURL(videoUrl);
+                            } else {
+                                Alert.alert('Error', 'Unable to open YouTube');
+                            }
+                        } catch (error) {
+                            Alert.alert('Error', 'Unable to open YouTube');
+                        }
+                    }
+                },
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                }
+            ]
+        );
     };
+
+    // Function to start icon animations for all video cards
+        const startIconAnimations = () => {
+            iconRotateAnims.forEach((anim, index) => {
+                Animated.loop(
+                    Animated.sequence([
+                        Animated.timing(anim, {
+                            toValue: 1,
+                            duration: 3000 + (index * 200),
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(anim, {
+                            toValue: 0,
+                            duration: 3000 + (index * 200),
+                            useNativeDriver: true,
+                        }),
+                    ])
+                ).start();
+            });
+
+            // Add scale animation
+            iconScaleAnims.forEach((anim, index) => {
+                Animated.loop(
+                    Animated.sequence([
+                        Animated.timing(anim, {
+                            toValue: 1,
+                            duration: 2000 + (index * 150),
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(anim, {
+                            toValue: 0,
+                            duration: 2000 + (index * 150),
+                            useNativeDriver: true,
+                        }),
+                    ])
+                ).start();
+            });
+        };
 
     // Refresh control
     const onRefresh = React.useCallback(() => {
@@ -146,6 +226,20 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
                 return ['#ffd54f', '#ffca28', '#ffc107'];
             default:
                 return ['#ff6b35', '#ff8c42', '#ffa726'];
+        }
+    };
+
+    // Function to get custom icon for video category
+    const getCategoryIcon = (category: string) => {
+        const iconProps = { size: 48, gradient: false, color: '#FFFFFF' };
+        switch (category) {
+            case 'Purpose': return <SpiritualIcons.Purpose {...iconProps} />;
+            case 'Prayer': return <SpiritualIcons.Peace {...iconProps} />;
+            case 'Faith': return <SpiritualIcons.Faith {...iconProps} />;
+            case 'Love': return <SpiritualIcons.Love {...iconProps} />;
+            case 'Gratitude': return <SpiritualIcons.Gratitude {...iconProps} />;
+            case 'Peace': return <SpiritualIcons.Peace {...iconProps} />;
+            default: return <SpiritualIcons.Joy {...iconProps} />;
         }
     };
 
@@ -199,25 +293,40 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
                                 style={styles.favoriteButton}
                                 onPress={() => toggleFavorite(video.id)}
                             >
-                                <Text style={[
-                                    styles.favoriteIcon,
-                                    { color: video.isFavorite ? '#FFD700' : 'rgba(255,255,255,0.8)' }
-                                ]}>
-                                    {video.isFavorite ? '⭐' : '☆'}
-                                </Text>
+                                <StarIcon 
+                                    size={20} 
+                                    color={video.isFavorite ? '#FFD700' : 'rgba(255,255,255,0.8)'} 
+                                    filled={video.isFavorite} 
+                                />
                             </TouchableOpacity>
                         </View>
 
                         {/* Video Thumbnail */}
                         <View style={styles.thumbnailContainer}>
                             <View style={styles.thumbnailBackground}>
-                                <Text style={styles.thumbnailEmoji}>{video.thumbnail}</Text>
+                                <Animated.View 
+                                    style={[
+                                        styles.customIconContainer,
+                                        {
+                                            transform: [
+                                                {
+                                                    rotate: iconRotateAnims[index].interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0deg', '360deg'],
+                                                    }),
+                                                },
+                                            ],
+                                        },
+                                    ]}
+                                >
+                                    {getCategoryIcon(video.category)}
+                                </Animated.View>
                                 <View style={styles.playButton}>
                                     <LinearGradient
                                         colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)']}
                                         style={styles.playButtonGradient}
                                     >
-                                        <Text style={styles.playIcon}>▶️</Text>
+                                        <PlayIcon size={14} color="#333333" />
                                     </LinearGradient>
                                 </View>
                                 <View style={styles.durationBadge}>
@@ -294,12 +403,15 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
                             <Text style={styles.headerSubtitle}>Inspirational messages & teachings</Text>
                         </View>
                         
-                        <TouchableOpacity style={styles.searchButton}>
+                        <TouchableOpacity 
+                            style={styles.searchButton}
+                            onPress={() => setShowSearchModal(true)}
+                        >
                             <LinearGradient
                                 colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                                 style={styles.searchGradient}
                             >
-                                <Text style={styles.searchIcon}>🔍</Text>
+                                <SearchIcon size={20} color="#FFFFFF" />
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
@@ -378,9 +490,108 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
                     ))}
                 </View>
             </LinearGradient>
-        </>
-    );
-};
+
+        {/* Video Player Modal */}
+            <Modal
+                visible={showVideoModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowVideoModal(false)}
+            >
+                <View style={styles.videoModalContainer}>
+                    <View style={styles.videoModalContent}>
+                        <View style={styles.videoModalHeader}>
+                            <Text style={styles.videoModalTitle}>Video Player</Text>
+                            <TouchableOpacity
+                                style={styles.videoCloseButton}
+                                onPress={() => setShowVideoModal(false)}
+                            >
+                                <Text style={styles.videoCloseText}>✕</Text>
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <View style={styles.videoPlayerContainer}>
+                            <WebView
+                                style={styles.videoPlayer}
+                                source={{ uri: selectedVideoUrl }}
+                                allowsFullscreenVideo={true}
+                                mediaPlaybackRequiresUserAction={false}
+                                javaScriptEnabled={true}
+                                domStorageEnabled={true}
+                                startInLoadingState={true}
+                                renderLoading={() => (
+                                    <View style={styles.videoLoadingContainer}>
+                                        <Text style={styles.videoLoadingText}>Loading video...</Text>
+                                    </View>
+                                )}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+             {/* Search Modal */}
+                <Modal
+                    visible={showSearchModal}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setShowSearchModal(false)}
+                >
+                    <View style={styles.searchModalContainer}>
+                        <View style={styles.searchModalContent}>
+                            <View style={styles.searchModalHeader}>
+                                <Text style={styles.searchModalTitle}>Search Videos</Text>
+                                <TouchableOpacity
+                                    style={styles.searchCloseButton}
+                                    onPress={() => setShowSearchModal(false)}
+                                >
+                                    <Text style={styles.searchCloseText}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+                            
+                            <View style={styles.searchInputContainer}>
+                                <TextInput
+                                    style={styles.searchInput}
+                                    placeholder="Search videos by title, author, or category..."
+                                    placeholderTextColor="rgba(255,255,255,0.6)"
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    autoFocus={true}
+                                />
+                            </View>
+                            
+                            <ScrollView style={styles.searchResults}>
+                                {videos
+                                    .filter(video => 
+                                        searchQuery === '' || 
+                                        video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                        video.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                        video.category.toLowerCase().includes(searchQuery.toLowerCase())
+                                    )
+                                    .map((video, index) => (
+                                        <TouchableOpacity
+                                            key={video.id}
+                                            style={styles.searchResultItem}
+                                            onPress={() => {
+                                                setShowSearchModal(false);
+                                                playVideo(video.videoUrl, video.title);
+                                            }}
+                                        >
+                                            <View style={styles.searchResultContent}>
+                                                <Text style={styles.searchResultTitle}>{video.title}</Text>
+                                                <Text style={styles.searchResultAuthor}>by {video.author}</Text>
+                                                <Text style={styles.searchResultCategory}>{video.category} • {video.duration}</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))
+                                }
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
+                </>
+            );
+        }
 
 const styles = StyleSheet.create({
     container: {
@@ -490,6 +701,19 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
 
+    videoLoadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000000',
+    },
+
+    videoLoadingText: {
+        fontSize: 16,
+        fontFamily: 'Outfit_400Regular',
+        color: '#FFFFFF',
+    },
+
     cardBlur: {
         borderRadius: 24,
         overflow: 'hidden',
@@ -551,11 +775,6 @@ const styles = StyleSheet.create({
         position: 'relative',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.3)',
-    },
-
-    thumbnailEmoji: {
-        fontSize: 40,
-        marginBottom: 8,
     },
 
     playButton: {
@@ -716,4 +935,161 @@ const styles = StyleSheet.create({
     bottomSpacing: {
         height: 100,
     },
+
+    customIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 8,
+    },
+
+    videoModalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    videoModalContent: {
+        width: '95%',
+        height: '80%',
+        backgroundColor: '#333333',
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
+    videoModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#444444',
+    },
+
+    videoModalTitle: {
+        fontSize: 18,
+        fontFamily: 'Outfit_600SemiBold',
+        color: '#FFFFFF',
+    },
+
+    videoCloseButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    videoCloseText: {
+        fontSize: 16,
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+    },
+
+    videoPlayerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000000',
+    },
+
+    videoPlayer: {
+        flex: 1,
+        backgroundColor: '#000000',
+    },
+
+    searchModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+searchModalContent: {
+    width: '90%',
+    height: '70%',
+    backgroundColor: '#333333',
+    borderRadius: 20,
+    overflow: 'hidden',
+},
+
+searchModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#444444',
+},
+
+searchModalTitle: {
+    fontSize: 18,
+    fontFamily: 'Outfit_600SemiBold',
+    color: '#FFFFFF',
+},
+
+searchCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+searchCloseText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+},
+
+searchInputContainer: {
+    padding: 20,
+},
+
+searchInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+},
+
+searchResults: {
+    flex: 1,
+    padding: 20,
+},
+
+searchResultItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+},
+
+searchResultContent: {},
+
+searchResultTitle: {
+    fontSize: 16,
+    fontFamily: 'Outfit_600SemiBold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+},
+
+searchResultAuthor: {
+    fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 2,
+},
+
+searchResultCategory: {
+    fontSize: 12,
+    fontFamily: 'Outfit_300Light',
+    color: 'rgba(255, 255, 255, 0.6)',
+},
+
 });

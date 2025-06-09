@@ -1,6 +1,5 @@
 // src/views/screens/content/VerseOfDayScreen.tsx
-// Daily verse screen with swipe gestures and animations
-// This screen displays daily verses with themes, reflections, and applications
+// Updated to use custom spiritual icons instead of emojis
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -13,12 +12,17 @@ import {
     Platform,
     TouchableOpacity,
     Share,
+    ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { BackIcon, ShareIcon, PrayerIcon, CrossIcon } from '../../components/icons/CustomIcons';
 
-// Import verses data
+// Import our custom spiritual icons
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+
+// Import verses data (updated to remove emoji field)
 import versesData from '../../../models/data/verses.json';
 
 const { width, height } = Dimensions.get('window');
@@ -28,7 +32,6 @@ interface Verse {
     verse: string;
     text: string;
     theme: string;
-    emoji: string;
     reflection: string;
     application: string;
 }
@@ -37,7 +40,6 @@ interface VerseOfDayScreenProps {
     navigation: any;
 }
 
-// VerseOfDayScreen component
 export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [verses] = useState<Verse[]>(versesData);
@@ -49,11 +51,30 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
     const cardTranslateX = useRef(new Animated.Value(0)).current;
     const cardScale = useRef(new Animated.Value(1)).current;
     const reflectionOpacity = useRef(new Animated.Value(0)).current;
-    const reflectionHeight = useRef(new Animated.Value(0)).current;
+    const iconRotateAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         startAnimations();
+        startIconAnimation();
     }, []);
+
+    // Animate the custom icon
+    const startIconAnimation = () => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(iconRotateAnim, {
+                    toValue: 1,
+                    duration: 3000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(iconRotateAnim, {
+                    toValue: 0,
+                    duration: 3000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    };
 
     const startAnimations = () => {
         Animated.parallel([
@@ -70,6 +91,16 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         ]).start();
     };
 
+    // Get the appropriate custom icon for the theme
+    const getCustomIcon = (theme: string) => {
+        const IconComponent = SpiritualIcons[theme as keyof typeof SpiritualIcons];
+        if (!IconComponent) {
+            // Fallback to a default icon if theme not found
+            return SpiritualIcons.Joy;
+        }
+        return IconComponent;
+    };
+
     // Navigation functions - next and previous verses
     const nextVerse = () => {
         if (currentIndex < verses.length - 1) {
@@ -80,8 +111,6 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         }
     };
 
-    // Function to go to the previous verse
-    // This function checks if the current index is greater than 0 before allowing navigation
     const previousVerse = () => {
         if (currentIndex > 0) {
             setShowReflection(false);
@@ -91,8 +120,6 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         }
     };
 
-    // Function to animate card transition
-    // This function scales down the card and fades it out, then resets the state and scales it back up
     const animateCardTransition = (callback: () => void) => {
         Animated.sequence([
             Animated.timing(cardScale, {
@@ -122,42 +149,23 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         });
     };
 
-    // Function to toggle reflection visibility
-    // This function uses Animated API to show or hide the reflection section with a smooth transition
     const toggleReflection = () => {
         if (showReflection) {
-            // Hide reflection
-            Animated.parallel([
-                Animated.timing(reflectionOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(reflectionHeight, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: false,
-                }),
-            ]).start(() => setShowReflection(false));
+            Animated.timing(reflectionOpacity, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => setShowReflection(false));
         } else {
-            // Show reflection
             setShowReflection(true);
-            Animated.parallel([
-                Animated.timing(reflectionOpacity, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(reflectionHeight, {
-                    toValue: 200,
-                    duration: 300,
-                    useNativeDriver: false,
-                }),
-            ]).start();
+            Animated.timing(reflectionOpacity, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
         }
     };
 
-    // Function to share the current verse
     const shareVerse = async () => {
         const currentVerse = verses[currentIndex];
         try {
@@ -170,7 +178,7 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         }
     };
 
-    // Function to get theme colors based on the verse theme
+    // Updated theme colors to match The Morning Amen logo
     const getThemeColors = (theme: string): [string, string, string] => {
         switch (theme) {
             case 'Joy':
@@ -194,18 +202,22 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
             case 'New Life':
                 return ['#aed581', '#9ccc65', '#8bc34a'];
             default:
-                return ['#ff6b35', '#ff8c42', '#ffa726'];
+                return ['#ff9a56', '#ff6b35', '#f7931e']; // Morning Amen brand colors
         }
     };
 
     const currentVerse = verses[currentIndex];
+    const CustomIcon = getCustomIcon(currentVerse.theme);
+    const iconRotation = iconRotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
 
     const onPanGestureEvent = (event: any) => {
         const { translationX } = event.nativeEvent;
         cardTranslateX.setValue(translationX);
     };
 
-    // Function to handle the end of the pan gesture
     const onPanHandlerStateChange = (event: any) => {
         if (event.nativeEvent.state === State.END) {
             const { translationX, velocityX } = event.nativeEvent;
@@ -218,7 +230,6 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                 }
             }
             
-            // Reset card position
             Animated.spring(cardTranslateX, {
                 toValue: 0,
                 useNativeDriver: true,
@@ -253,7 +264,7 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                             colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                             style={styles.backButtonGradient}
                         >
-                            <Text style={styles.backIcon}>←</Text>
+                            <BackIcon size={20} color="#FFFFFF" />
                         </LinearGradient>
                     </TouchableOpacity>
 
@@ -272,13 +283,16 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                             colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                             style={styles.shareButtonGradient}
                         >
-                            <Text style={styles.shareIcon}>📤</Text>
+                            <ShareIcon size={18} color="#FFFFFF" />
                         </LinearGradient>
                     </TouchableOpacity>
                 </Animated.View>
 
-                {/* Main Content */}
-                <View style={styles.content}>
+                {/* Main Scrollable Content */}
+                <ScrollView 
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                >
                     <PanGestureHandler
                         onGestureEvent={onPanGestureEvent}
                         onHandlerStateChange={onPanHandlerStateChange}
@@ -303,13 +317,26 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                 >
-                                    {/* Theme Badge */}
+                                    {/* Custom Icon Badge */}
                                     <View style={styles.themeBadge}>
                                         <LinearGradient
                                             colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                                             style={styles.themeBadgeGradient}
                                         >
-                                            <Text style={styles.themeEmoji}>{currentVerse.emoji}</Text>
+                                            <Animated.View
+                                                style={[
+                                                    styles.customIconContainer,
+                                                    {
+                                                        transform: [{ rotate: iconRotation }],
+                                                    },
+                                                ]}
+                                            >
+                                                <CustomIcon 
+                                                    size={28} 
+                                                    color="#FFFFFF" 
+                                                    gradient={false}
+                                                />
+                                            </Animated.View>
                                             <Text style={styles.themeText}>{currentVerse.theme}</Text>
                                         </LinearGradient>
                                     </View>
@@ -343,9 +370,12 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                                 colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                                                 style={styles.actionButtonGradient}
                                             >
-                                                <Text style={styles.actionButtonText}>
-                                                    {showReflection ? 'Hide' : 'Reflect'} 💭
-                                                </Text>
+                                                <View style={styles.actionButtonContent}>
+                                                    <Text style={styles.actionButtonText}>
+                                                        {showReflection ? 'Hide' : 'Reflect'}
+                                                    </Text>
+                                                    <PrayerIcon size={16} color="#FFFFFF" />
+                                                </View>
                                             </LinearGradient>
                                         </TouchableOpacity>
 
@@ -357,7 +387,10 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                                 colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                                                 style={styles.actionButtonGradient}
                                             >
-                                                <Text style={styles.actionButtonText}>Share 📱</Text>
+                                                <View style={styles.actionButtonContent}>
+                                                    <Text style={styles.actionButtonText}>Share</Text>
+                                                    <ShareIcon size={16} color="#FFFFFF" />
+                                                </View>
                                             </LinearGradient>
                                         </TouchableOpacity>
                                     </View>
@@ -389,7 +422,6 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                 styles.reflectionContainer,
                                 {
                                     opacity: reflectionOpacity,
-                                    height: reflectionHeight,
                                 },
                             ]}
                         >
@@ -398,30 +430,36 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                     colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
                                     style={styles.reflectionGradient}
                                 >
-                                    <Text style={styles.reflectionTitle}>💭 Reflection</Text>
+                                    <View style={styles.reflectionHeader}>
+                                        <PrayerIcon size={16} color="#FFFFFF" />
+                                        <Text style={styles.reflectionTitle}>Reflection</Text>
+                                    </View>
                                     <Text style={styles.reflectionText}>{currentVerse.reflection}</Text>
                                     
-                                    <Text style={styles.applicationTitle}>🎯 Apply Today</Text>
+                                    <View style={styles.applicationHeader}>
+                                        <CrossIcon size={16} color="#FFFFFF" />
+                                        <Text style={styles.applicationTitle}>Apply Today</Text>
+                                    </View>
                                     <Text style={styles.applicationText}>{currentVerse.application}</Text>
                                 </LinearGradient>
                             </BlurView>
                         </Animated.View>
                     )}
-                </View>
 
-                {/* Navigation Instructions */}
-                <Animated.View
-                    style={[
-                        styles.instructionsContainer,
-                        {
-                            opacity: fadeAnim,
-                        },
-                    ]}
-                >
-                    <Text style={styles.instructionsText}>
-                        ← Swipe to navigate → • Tap Reflect for insights
-                    </Text>
-                </Animated.View>
+                    {/* Navigation Instructions */}
+                    <Animated.View
+                        style={[
+                            styles.instructionsContainer,
+                            {
+                                opacity: fadeAnim,
+                            },
+                        ]}
+                    >
+                        <Text style={styles.instructionsText}>
+                            ← Swipe to navigate → • Tap Reflect for insights
+                        </Text>
+                    </Animated.View>
+                </ScrollView>
 
                 {/* Background particles */}
                 <View style={styles.backgroundParticles}>
@@ -473,12 +511,6 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.3)',
     },
 
-    backIcon: {
-        fontSize: 20,
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-    },
-
     headerCenter: {
         alignItems: 'center',
     },
@@ -515,14 +547,10 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.3)',
     },
 
-    shareIcon: {
-        fontSize: 18,
-    },
-
     content: {
-        flex: 1,
+        flexGrow: 1,
         paddingHorizontal: 20,
-        justifyContent: 'center',
+        paddingBottom: 150,
     },
 
     cardContainer: {
@@ -563,9 +591,10 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.3)',
     },
 
-    themeEmoji: {
-        fontSize: 20,
+    customIconContainer: {
         marginRight: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     themeText: {
@@ -644,6 +673,12 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.3)',
     },
 
+    actionButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+
     actionButtonText: {
         fontSize: 14,
         fontFamily: 'Outfit_500Medium',
@@ -669,11 +704,18 @@ const styles = StyleSheet.create({
         padding: 20,
     },
 
+    reflectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+
     reflectionTitle: {
         fontSize: 16,
         fontFamily: 'Outfit_600SemiBold',
         color: '#FFFFFF',
-        marginBottom: 12,
         textAlign: 'center',
     },
 
@@ -686,11 +728,18 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
 
+    applicationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+
     applicationTitle: {
         fontSize: 16,
         fontFamily: 'Outfit_600SemiBold',
         color: '#FFFFFF',
-        marginBottom: 12,
         textAlign: 'center',
     },
 
