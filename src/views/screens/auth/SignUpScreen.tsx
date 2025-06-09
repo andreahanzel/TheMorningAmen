@@ -30,6 +30,7 @@ interface SignUpScreenProps {
     onGoogleSignUp: () => void;
     onAppleSignUp: () => void;
     onBack: () => void;
+    navigation: any;
 }
 
 interface User {
@@ -47,8 +48,11 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
     onGoogleSignUp,
     onAppleSignUp,
     onBack,
+    navigation,
 }) => {
     const [firstName, setFirstName] = useState('');
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -213,22 +217,33 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
     // Handle guest login with confirmation dialog
     const handleGuestLogin = () => {
-        Alert.alert(
-            'Continue as Guest?',
-            'You\'ll have limited access to features. You can always sign up later for the full experience.',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Continue',
-                    onPress: () => {
-                        onSignUp();
+        if (Platform.OS === 'web') {
+            // On web, use browser confirm dialog
+            const confirmed = window.confirm(
+                'Continue as Guest?\n\nYou\'ll have limited access to features. You can always sign up later for the full experience.'
+            );
+            if (confirmed) {
+                onSignUp();
+            }
+        } else {
+            // On mobile, use React Native Alert
+            Alert.alert(
+                'Continue as Guest?',
+                'You\'ll have limited access to features. You can always sign up later for the full experience.',
+                [
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
                     },
-                },
-            ]
-        );
+                    {
+                        text: 'Continue',
+                        onPress: () => {
+                            onSignUp();
+                        },
+                    },
+                ]
+            );
+        }
     };
 
     const handleCheckboxPress = () => {
@@ -638,13 +653,192 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
                                 {acceptTerms && <Text style={styles.checkmark}>✓</Text>}
                             </Animated.View>
 
-                                <Text style={styles.termsText}>
-                                    I agree to the{' '}
-                                    <Text style={styles.termsLink}>Terms & Conditions</Text>
-                                    {' '}and{' '}
-                                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                            <Text style={styles.termsText}>
+                                I agree to the{' '}
+                                <Text 
+                                    style={styles.termsLink}
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                        setShowTermsModal(true);
+                                    }}
+                                >
+                                    Terms & Conditions
                                 </Text>
+                                {' '}and{' '}
+                                <Text 
+                                    style={styles.termsLink}
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                        setShowPrivacyModal(true);
+                                    }}
+                                >
+                                    Privacy Policy
+                                </Text>
+                            </Text>
                             </TouchableOpacity>
+
+                            {/* Terms & Conditions Modal */}
+                            {showTermsModal && (
+                                <View style={styles.modalOverlay}>
+                                    <View style={styles.modalContainer}>
+                                        <View style={styles.modalHeader}>
+                                            <Text style={styles.modalTitle}>Terms & Conditions</Text>
+                                            <TouchableOpacity 
+                                                style={styles.closeButton}
+                                                onPress={() => setShowTermsModal(false)}
+                                            >
+                                                <Text style={styles.closeButtonText}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                                            <Text style={styles.lastUpdated}>Last Updated: {new Date().toLocaleDateString()}</Text>
+                                            
+                                            <Text style={styles.modalSectionTitle}>1. Acceptance of Terms</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                By downloading, accessing, or using The Morning Amen mobile application ("App"), you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, please do not use our App.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>2. Description of Service</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                The Morning Amen is a faith-based mobile application that provides daily devotionals, inspirational videos, prayer requests, Bible verses, and spiritual content designed to support your spiritual journey and growth.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>3. User Accounts and Registration</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                To access certain features, you may need to create an account. You are responsible for:
+                                            </Text>
+                                            <Text style={styles.modalBulletPoint}>• Providing accurate and complete information</Text>
+                                            <Text style={styles.modalBulletPoint}>• Maintaining the security of your account credentials</Text>
+                                            <Text style={styles.modalBulletPoint}>• All activities that occur under your account</Text>
+                                            <Text style={styles.modalBulletPoint}>• Notifying us immediately of any unauthorized use</Text>
+
+                                            <Text style={styles.modalSectionTitle}>4. Acceptable Use Policy</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                You agree not to use the App to:
+                                            </Text>
+                                            <Text style={styles.modalBulletPoint}>• Post or share content that is offensive, harmful, or inappropriate</Text>
+                                            <Text style={styles.modalBulletPoint}>• Violate any applicable laws or regulations</Text>
+                                            <Text style={styles.modalBulletPoint}>• Infringe on intellectual property rights</Text>
+                                            <Text style={styles.modalBulletPoint}>• Transmit viruses or malicious code</Text>
+                                            <Text style={styles.modalBulletPoint}>• Attempt to gain unauthorized access to our systems</Text>
+
+                                            <Text style={styles.modalSectionTitle}>5. User-Generated Content</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                When you submit prayer requests or other content, you grant us a non-exclusive, royalty-free license to use, display, and distribute such content within the App. You retain ownership of your content and can request its removal at any time.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>6. Privacy and Data Protection</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your information. By using the App, you consent to our privacy practices.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>7. Intellectual Property Rights</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                All content in the App, including text, graphics, logos, images, audio clips, and software, is owned by The Morning Amen or its licensors and is protected by copyright, trademark, and other intellectual property laws.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>8. Disclaimers and Limitations</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                The App is provided "as is" without warranties of any kind. We do not guarantee uninterrupted or error-free service, accuracy of content, or compatibility with all devices.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>9. Limitation of Liability</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                To the maximum extent permitted by law, The Morning Amen shall not be liable for any indirect, incidental, special, consequential, or punitive damages.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>10. Contact Information</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                If you have questions about these Terms, please contact us at: legal@themorningamen.com
+                                            </Text>
+                                        </ScrollView>
+                                        <TouchableOpacity 
+                                            style={styles.modalAcceptButton}
+                                            onPress={() => setShowTermsModal(false)}
+                                        >
+                                            <Text style={styles.modalAcceptText}>I Understand</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Privacy Policy Modal */}
+                            {showPrivacyModal && (
+                                <View style={styles.modalOverlay}>
+                                    <View style={styles.modalContainer}>
+                                        <View style={styles.modalHeader}>
+                                            <Text style={styles.modalTitle}>Privacy Policy</Text>
+                                            <TouchableOpacity 
+                                                style={styles.closeButton}
+                                                onPress={() => setShowPrivacyModal(false)}
+                                            >
+                                                <Text style={styles.closeButtonText}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                                            <Text style={styles.lastUpdated}>Last Updated: {new Date().toLocaleDateString()}</Text>
+                                            
+                                            <Text style={styles.modalIntro}>
+                                                At The Morning Amen, we respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, share, and safeguard your information when you use our mobile application.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>1. Information We Collect</Text>
+                                            <Text style={styles.modalSubSectionTitle}>Personal Information</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                When you create an account or use our services, we may collect:
+                                            </Text>
+                                            <Text style={styles.modalBulletPoint}>• Name and email address</Text>
+                                            <Text style={styles.modalBulletPoint}>• Account credentials (encrypted passwords)</Text>
+                                            <Text style={styles.modalBulletPoint}>• Profile information you choose to provide</Text>
+                                            <Text style={styles.modalBulletPoint}>• Prayer requests and spiritual content you submit</Text>
+
+                                            <Text style={styles.modalSectionTitle}>2. How We Use Your Information</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                We use your information to:
+                                            </Text>
+                                            <Text style={styles.modalBulletPoint}>• Provide and maintain our services</Text>
+                                            <Text style={styles.modalBulletPoint}>• Personalize your spiritual journey experience</Text>
+                                            <Text style={styles.modalBulletPoint}>• Send daily devotionals and spiritual content</Text>
+                                            <Text style={styles.modalBulletPoint}>• Respond to your inquiries and support requests</Text>
+                                            <Text style={styles.modalBulletPoint}>• Improve our App's functionality and features</Text>
+
+                                            <Text style={styles.modalSectionTitle}>3. Information Sharing</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                We do not sell, trade, or rent your personal information. We may share information only:
+                                            </Text>
+                                            <Text style={styles.modalBulletPoint}>• With your explicit consent</Text>
+                                            <Text style={styles.modalBulletPoint}>• To comply with legal requirements</Text>
+                                            <Text style={styles.modalBulletPoint}>• To protect our rights, property, or safety</Text>
+
+                                            <Text style={styles.modalSectionTitle}>4. Data Security</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                We implement robust security measures including encryption of data in transit and at rest, secure servers with regular security updates, and access controls.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>5. Your Privacy Rights</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                You have the right to access, correct, or delete your personal information, opt-out of marketing communications, and request data portability.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>6. Children's Privacy</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                Our App is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
+                                            </Text>
+
+                                            <Text style={styles.modalSectionTitle}>7. Contact Us</Text>
+                                            <Text style={styles.modalParagraph}>
+                                                If you have questions about this Privacy Policy, please contact us at: privacy@themorningamen.com
+                                            </Text>
+                                        </ScrollView>
+                                        <TouchableOpacity 
+                                            style={styles.modalAcceptButton}
+                                            onPress={() => setShowPrivacyModal(false)}
+                                        >
+                                            <Text style={styles.modalAcceptText}>I Understand</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
                             
                             {validationErrors.terms && (
                                 <Text style={[styles.errorText, { marginTop: -15, marginBottom: 15 }]}>
@@ -1293,4 +1487,127 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 2,
     },
+
+        modalOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+
+    modalContainer: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        marginHorizontal: 20,
+        marginVertical: 40,
+        borderRadius: 20,
+        maxHeight: '90%',
+        width: '90%',
+    },
+
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    },
+
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+
+    closeButton: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    closeButtonText: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: 'bold',
+    },
+
+    modalContent: {
+        padding: 20,
+        maxHeight: 400,
+    },
+
+    lastUpdated: {
+        fontSize: 12,
+        fontStyle: 'italic',
+        color: '#666',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+
+    modalIntro: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#333',
+        marginBottom: 20,
+        fontWeight: '500',
+        backgroundColor: 'rgba(255, 154, 86, 0.1)',
+        padding: 15,
+        borderRadius: 10,
+    },
+
+    modalSectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+
+    modalSubSectionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginTop: 15,
+        marginBottom: 8,
+    },
+
+    modalParagraph: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#333',
+        marginBottom: 10,
+    },
+
+    modalBulletPoint: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#333',
+        marginBottom: 5,
+        marginLeft: 15,
+    },
+
+    modalAcceptButton: {
+        margin: 20,
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        backgroundColor: '#ff6b35',
+        borderRadius: 25,
+        alignItems: 'center',
+    },
+
+    modalAcceptText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+
+
 });

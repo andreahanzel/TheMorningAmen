@@ -123,38 +123,45 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
 
     // Play video function
     const playVideo = async (videoUrl: string, title: string) => {
-        Alert.alert(
-            'Play Video',
-            'How would you like to watch this video?',
-            [
-                {
-                    text: 'Watch in App',
-                    onPress: () => {
-                        setSelectedVideoUrl(convertToEmbedUrl(videoUrl));
-                        setShowVideoModal(true);
-                    }
-                },
-                {
-                    text: 'Open YouTube',
-                    onPress: async () => {
-                        try {
-                            const supported = await Linking.canOpenURL(videoUrl);
-                            if (supported) {
-                                await Linking.openURL(videoUrl);
-                            } else {
+        // Check if we're on web/desktop
+        if (Platform.OS === 'web') {
+            // On web, directly open YouTube URL in new tab
+            window.open(videoUrl, '_blank');
+        } else {
+            // On mobile, show the choice alert
+            Alert.alert(
+                'Play Video',
+                'How would you like to watch this video?',
+                [
+                    {
+                        text: 'Watch in App',
+                        onPress: () => {
+                            setSelectedVideoUrl(convertToEmbedUrl(videoUrl));
+                            setShowVideoModal(true);
+                        }
+                    },
+                    {
+                        text: 'Open YouTube',
+                        onPress: async () => {
+                            try {
+                                const supported = await Linking.canOpenURL(videoUrl);
+                                if (supported) {
+                                    await Linking.openURL(videoUrl);
+                                } else {
+                                    Alert.alert('Error', 'Unable to open YouTube');
+                                }
+                            } catch (error) {
                                 Alert.alert('Error', 'Unable to open YouTube');
                             }
-                        } catch (error) {
-                            Alert.alert('Error', 'Unable to open YouTube');
                         }
+                    },
+                    {
+                        text: 'Cancel',
+                        style: 'cancel'
                     }
-                },
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     // Function to start icon animations for all video cards

@@ -159,23 +159,33 @@ import {
 
     // Handle guest login with confirmation
     const handleGuestLogin = () => {
-        Alert.alert(
-        'Continue as Guest?',
-        'You\'ll have limited access to features. You can always sign up later for the full experience.',
-        [
-            {
-            text: 'Cancel',
-            style: 'cancel',
-            },
-            {
-            text: 'Continue',
-            onPress: () => {
-                // Simulate guest login
+        if (Platform.OS === 'web') {
+            // On web, use browser confirm dialog
+            const confirmed = window.confirm(
+                'Continue as Guest?\n\nYou\'ll have limited access to features. You can always sign up later for the full experience.'
+            );
+            if (confirmed) {
                 onLogin();
-            },
-            },
-        ]
-        );
+            }
+        } else {
+            // On mobile, use React Native Alert
+            Alert.alert(
+                'Continue as Guest?',
+                'You\'ll have limited access to features. You can always sign up later for the full experience.',
+                [
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'Continue',
+                        onPress: () => {
+                            onLogin();
+                        },
+                    },
+                ]
+            );
+        }
     };
 
 

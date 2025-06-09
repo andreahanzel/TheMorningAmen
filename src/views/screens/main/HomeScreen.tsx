@@ -22,7 +22,7 @@ import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { BibleIcon, PrayerIcon, PlayIcon, NewsIcon, SunriseIcon, StarIcon, SearchIcon, CrossIcon } from '../../components/icons/CustomIcons';
-
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 
 // Import your custom theme
 import { colors } from '../../../styles/colors';
@@ -65,6 +65,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         new Animated.Value(0), // Bible reading
     ]).current;
 
+        // Spiritual icon animations
+    const iconRotateAnims = useRef([
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+    ]).current;
+
+    const iconScaleAnims = useRef([
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+    ]).current;
+
     // Floating animation for enhanced UI
     const floatAnim = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -76,10 +99,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         return () => subscription?.remove();
     }, []);
 
+    // This effect runs on component mount to load user data and start animations
     useEffect(() => {
         loadUserData();
         startAnimations();
         startFloatingAnimation();
+        startSpiritualIconAnimations();
         
         // Update time every minute
         const timeInterval = setInterval(() => {
@@ -166,6 +191,43 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         ).start();
     };
 
+    const startSpiritualIconAnimations = () => {
+        iconRotateAnims.forEach((anim, index) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 3000 + (index * 200),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 0,
+                        duration: 3000 + (index * 200),
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        });
+
+        iconScaleAnims.forEach((anim, index) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 2000 + (index * 150),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 0,
+                        duration: 2000 + (index * 150),
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        });
+    }; 
+
+// Refresh control for pull-to-refresh functionality
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         // Simulate refresh
@@ -231,19 +293,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                     navigation.navigate('About');
                     break;
                 case 'BibleReading':
-                    // New feature - can link to existing VerseOfDay or create new screen
-                    navigation.navigate('VerseOfDay');
+                    // Show coming soon alert instead of navigating
+                    if (Platform.OS === 'web') {
+                        window.alert('Coming Soon! 📖\n\nBible Reading feature will be available in future updates.');
+                    } else {
+                        Alert.alert('Coming Soon! 📖', 'Bible Reading feature will be available in future updates.');
+                    }
                     break;
                 case 'News':
-                    // New feature - coming soon
-                    Alert.alert('Coming Soon! 📰', 'Christian News feature will be available in future updates.');
+                    // Show coming soon alert
+                    if (Platform.OS === 'web') {
+                        window.alert('Coming Soon! 📰\n\nChristian News feature will be available in future updates.');
+                    } else {
+                        Alert.alert('Coming Soon! 📰', 'Christian News feature will be available in future updates.');
+                    }
                     break;
                 case 'Meditation':
+                    if (Platform.OS === 'web') {
+                        window.alert('Coming Soon! 🧘‍♀️\n\nMeditation feature will be available in future updates.');
+                    } else {
+                        Alert.alert('Coming Soon! 🧘‍♀️', 'Meditation feature will be available in future updates.');
+                    }
+                    break;
                 case 'Favorites':
+                    if (Platform.OS === 'web') {
+                        window.alert('Coming Soon! ⭐\n\nMy Favorites feature will be available in future updates.');
+                    } else {
+                        Alert.alert('Coming Soon! ⭐', 'My Favorites feature will be available in future updates.');
+                    }
+                    break;
                 case 'Settings':
-                    // These will be created in future modules - PRESERVED
-                    console.log(`${screen} - Coming in future updates!`);
-                    Alert.alert('Coming Soon! 🚀', `${screen} feature will be available in future updates.`);
+                    if (Platform.OS === 'web') {
+                        window.alert('Coming Soon! ⚙️\n\nSettings feature will be available in future updates.');
+                    } else {
+                        Alert.alert('Coming Soon! ⚙️', 'Settings feature will be available in future updates.');
+                    }
                     break;
                 default:
                     console.log(`Navigation to ${screen} - Screen coming soon!`);
@@ -252,20 +336,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
         });
     };
 
-    const getIconComponent = (iconName: string, size: number) => {
-    const iconProps = { size, color: '#FFFFFF' };
-    
-    switch (iconName) {
-        case 'bible': return <BibleIcon {...iconProps} />;
-        case 'prayer': return <PrayerIcon {...iconProps} />;
-        case 'video': return <PlayIcon {...iconProps} />;
-        case 'news': return <NewsIcon {...iconProps} />;
-        case 'sunrise': return <SunriseIcon {...iconProps} />;
-        case 'star': return <StarIcon {...iconProps} />;
-        case 'cross': return <CrossIcon {...iconProps} />;
-        default: return <BibleIcon {...iconProps} />;
-    }
-};
+    // Function to get the icon component based on the icon name
+    // This function returns the appropriate icon component based on the icon name
+    const getIconComponent = (iconName: string, size: number, index: number = 0) => {
+        const iconProps = { size: size + 8, gradient: true, color: '#FFFFFF' };
+        
+        switch (iconName) {
+            case 'bible': return <BibleIcon {...iconProps} />;
+            case 'prayer': return <PrayerIcon {...iconProps} />;
+            case 'video': return <PlayIcon {...iconProps} />;
+            case 'news': return <NewsIcon {...iconProps} />;
+            case 'sunrise': return <SunriseIcon {...iconProps} />;
+            case 'star': return <StarIcon {...iconProps} />;
+            case 'cross': return <CrossIcon {...iconProps} />;
+            default: return <BibleIcon {...iconProps} />;
+        }
+    };
 
     // Enhanced Feature Card with responsive design
     const FeatureCard = ({ 
@@ -341,16 +427,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                         <BlurView intensity={10} style={styles.cardBlurOverlay}>
                             <View style={styles.cardContent}>
                                 {/* Icon Container */}
-                                <Animated.View 
-                                    style={[
-                                        styles.cardIcon,
+                                {/* Icon Container with Spiritual Animations */}
+                        <Animated.View 
+                            style={[
+                                styles.cardIcon,
+                                {
+                                    transform: [
+                                        { scale: pulseAnim },
                                         {
-                                            transform: [{ scale: pulseAnim }]
-                                        }
-                                    ]}
-                                >
-                                    {getIconComponent(icon, size === 'large' ? (isLargeScreen ? 36 : 32) : (isLargeScreen ? 28 : 24))}
-                                </Animated.View>
+                                            rotate: iconRotateAnims[Math.floor(Math.random() * iconRotateAnims.length)].interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: ['0deg', '360deg'],
+                                            }),
+                                        },
+                                        {
+                                            scale: iconScaleAnims[Math.floor(Math.random() * iconScaleAnims.length)].interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 1.2],
+                                            }),
+                                        },
+                                    ]
+                                }
+                            ]}
+                        >
+                            {getIconComponent(icon, size === 'large' ? (isLargeScreen ? 36 : 32) : (isLargeScreen ? 28 : 24), Math.floor(Math.random() * 8))}
+                        </Animated.View>
                                 
                                 {/* Text Container */}
                                 <View style={styles.cardTextContent}>
@@ -558,21 +659,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                     </Animated.View>
 
                     {/* Main Features Grid - Enhanced with responsive layout */}
-                    <Animated.View
-                        style={[
-                            styles.featuresSection,
-                            {
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }],
-                            },
-                        ]}
-                    >
-                        <Text style={[
-                            styles.sectionTitle,
-                            { fontSize: isLargeScreen ? 24 : 20 }
-                        ]}>
-                            Explore Your Faith Journey
-                        </Text>
+                <Animated.View
+                    style={[
+                        styles.featuresSection,
+                        {
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }],
+                            marginTop: isLargeScreen ? 40 : 0, // Add top margin for large screens only
+                        },
+                    ]}
+                >
+                    <Text style={[
+                        styles.sectionTitle,
+                        { 
+                            fontSize: isLargeScreen ? 24 : 20,
+                            marginBottom: isLargeScreen ? 40 : 20, // Increase bottom margin for large screens
+                        }
+                    ]}>
+                        Explore Your Faith Journey
+                    </Text>
                         
                         {/* Features Grid Layout - Responsive */}
                         <View style={styles.featuresGrid}>
@@ -700,7 +805,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                                 onPress={() => handleCardPress('PrayerWall')}
                             >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <PrayerIcon size={isLargeScreen ? 28 : 24} color="#FFFFFF" />
+                                    <PrayerIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
                                     <Text style={styles.quickActionText}>Add Prayer</Text>
                                 </BlurView>
                             </Pressable>
@@ -710,7 +815,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                                 onPress={() => handleCardPress('About')}
                             >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <CrossIcon size={isLargeScreen ? 28 : 24} color="#FFFFFF" />
+                                    <CrossIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
                                     <Text style={styles.quickActionText}>About</Text>
                                 </BlurView>
                             </Pressable>
@@ -720,7 +825,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                                 onPress={() => handleCardPress('Settings')}
                             >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <SearchIcon size={isLargeScreen ? 28 : 24} color="#FFFFFF" />
+                                    <SearchIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
                                     <Text style={styles.quickActionText}>Settings</Text>
                                 </BlurView>
                             </Pressable>
@@ -988,6 +1093,7 @@ const styles = StyleSheet.create({
     // Enhanced Features Section
     featuresSection: {
         marginBottom: 16,
+        marginTop: 0,
     },
     
     sectionTitle: {

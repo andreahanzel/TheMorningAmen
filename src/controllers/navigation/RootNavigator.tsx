@@ -13,6 +13,8 @@
     import { LoginScreen } from '../../views/screens/auth/LoginScreen';
     import { SignUpScreen } from '../../views/screens/auth/SignUpScreen';
     import { ForgotPasswordScreen } from '../../views/screens/auth/ForgotPasswordScreen';
+    import { TermsAndConditionsScreen } from '../../views/screens/legal/TermsAndConditionsScreen';
+    import { PrivacyPolicyScreen } from '../../views/screens/legal/PrivacyPolicyScreen';
     import { MainTabNavigator } from './MainTabNavigator';
 
     // Import components
@@ -20,11 +22,13 @@
 
     // Navigation types
     export type RootStackParamList = {
-    Auth: undefined;
-    Login: undefined;
-    SignUp: undefined;
-    ForgotPassword: undefined;
-    MainTabs: undefined;
+        Auth: undefined;
+        Login: undefined;
+        SignUp: undefined;
+        ForgotPassword: undefined;
+        TermsAndConditions: undefined;
+        PrivacyPolicy: undefined;
+        MainTabs: undefined;
     };
 
     const Stack = createStackNavigator<RootStackParamList>();
@@ -80,6 +84,7 @@
                 onBack={() => navigation.goBack()}
                 onGoogleSignUp={() => navigation.navigate('MainTabs')}
                 onAppleSignUp={() => navigation.navigate('MainTabs')}
+                navigation={navigation}
             />
             )}
         </Stack.Screen>
@@ -89,6 +94,21 @@
             <ForgotPasswordScreen
                 onBack={() => navigation.goBack()}
                 onSuccess={() => navigation.navigate('Login')}
+            />
+            )}
+        </Stack.Screen>
+                <Stack.Screen name="TermsAndConditions">
+            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'TermsAndConditions'> }) => (
+            <TermsAndConditionsScreen
+                navigation={navigation}
+            />
+            )}
+        </Stack.Screen>
+
+        <Stack.Screen name="PrivacyPolicy">
+            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'PrivacyPolicy'> }) => (
+            <PrivacyPolicyScreen
+                navigation={navigation}
             />
             )}
         </Stack.Screen>

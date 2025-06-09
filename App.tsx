@@ -440,7 +440,7 @@ export default function App() {
             
             );
         
-        case 'signup':
+            case 'signup':
             return (
             <SignUpScreen
                 onSignUp={handleSuccessfulAuth}
@@ -448,6 +448,7 @@ export default function App() {
                 onGoogleSignUp={() => handleSocialLogin('Google')}
                 onAppleSignUp={() => handleSocialLogin('Apple')}
                 onBack={() => navigateToScreen('welcome')}
+                navigation={null}
             />
             );
 

@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,8 +38,24 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
         new Animated.Value(0),
     ]).current;
 
+    // Spiritual icon animations
+    const iconRotateAnims = useRef([
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+    ]).current;
+
+    const iconPulseAnims = useRef([
+        new Animated.Value(1),
+        new Animated.Value(1),
+        new Animated.Value(1),
+        new Animated.Value(1),
+    ]).current;
+
     useEffect(() => {
         startAnimations();
+        startSpiritualIconAnimations();
     }, []);
 
     const startAnimations = () => {
@@ -75,6 +92,42 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
         Animated.stagger(100, cardAnimations).start();
     };
 
+    const startSpiritualIconAnimations = () => {
+        iconRotateAnims.forEach((anim, index) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 4000 + (index * 300),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 0,
+                        duration: 4000 + (index * 300),
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        });
+
+        iconPulseAnims.forEach((anim, index) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1.15,
+                        duration: 2500 + (index * 200),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 2500 + (index * 200),
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        });
+    };
+
     const openLink = async (url: string, name: string) => {
         try {
             const supported = await Linking.canOpenURL(url);
@@ -89,7 +142,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
     };
 
     const sendEmail = () => {
-        openLink('mailto:hello@themorningamen.com', 'Email');
+        openLink('mailto:info@themorningamen.com', 'Email');
     };
 
     return (
@@ -177,7 +230,24 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}></Text>
+                                <Animated.View
+                                    style={[
+                                        styles.cardIconContainer,
+                                        {
+                                            transform: [
+                                                {
+                                                    rotate: iconRotateAnims[0].interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0deg', '360deg'],
+                                                    }),
+                                                },
+                                                { scale: iconPulseAnims[0] },
+                                            ],
+                                        },
+                                    ]}
+                                >
+                                    <SpiritualIcons.Purpose size={48} gradient={true} color="#FFFFFF" />
+                                </Animated.View>
                                 <Text style={styles.cardTitle}>Our Mission</Text>
                                 <Text style={styles.cardText}>
                                     To inspire and uplift people in their daily spiritual journey through meaningful 
@@ -210,7 +280,24 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}></Text>
+                                <Animated.View
+                                    style={[
+                                        styles.cardIconContainer,
+                                        {
+                                            transform: [
+                                                {
+                                                    rotate: iconRotateAnims[1].interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0deg', '360deg'],
+                                                    }),
+                                                },
+                                                { scale: iconPulseAnims[1] },
+                                            ],
+                                        },
+                                    ]}
+                                >
+                                    <SpiritualIcons.Love size={48} gradient={true} color="#FFFFFF" />
+                                </Animated.View>
                                 <Text style={styles.cardTitle}>Andrea's Heart</Text>
                                 <Text style={styles.cardText}>
                                     Hi! I'm Andrea, and The Morning Amen was born from my personal journey of 
@@ -249,27 +336,54 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}></Text>
+                                <Animated.View
+                                    style={[
+                                        styles.cardIconContainer,
+                                        {
+                                            transform: [
+                                                {
+                                                    rotate: iconRotateAnims[2].interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0deg', '360deg'],
+                                                    }),
+                                                },
+                                                { scale: iconPulseAnims[2] },
+                                            ],
+                                        },
+                                    ]}
+                                >
+                                    <SpiritualIcons.Joy size={48} gradient={true} color="#FFFFFF" />
+                                </Animated.View>
                                 <Text style={styles.cardTitle}>What Makes Us Special</Text>
                                 <View style={styles.featuresList}>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}></Text>
+                                        <View style={styles.featureIconContainer}>
+                                            <SpiritualIcons.Faith size={20} gradient={true} color="#FFFFFF" />
+                                        </View>
                                         <Text style={styles.featureText}>Daily devotions written with heart and scripture</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}></Text>
+                                        <View style={styles.featureIconContainer}>
+                                            <SpiritualIcons.Joy size={20} gradient={true} color="#FFFFFF" />
+                                        </View>
                                         <Text style={styles.featureText}>Inspirational video messages for encouragement</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}></Text>
+                                        <View style={styles.featureIconContainer}>
+                                            <SpiritualIcons.Peace size={20} gradient={true} color="#FFFFFF" />
+                                        </View>
                                         <Text style={styles.featureText}>Prayer wall for community support and unity</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}></Text>
+                                        <View style={styles.featureIconContainer}>
+                                            <SpiritualIcons.Renewal size={20} gradient={true} color="#FFFFFF" />
+                                        </View>
                                         <Text style={styles.featureText}>Daily verses with reflection and application</Text>
                                     </View>
                                     <View style={styles.featureItem}>
-                                        <Text style={styles.featureEmoji}></Text>
+                                        <View style={styles.featureIconContainer}>
+                                            <SpiritualIcons.Gratitude size={20} gradient={true} color="#FFFFFF" />
+                                        </View>
                                         <Text style={styles.featureText}>Positive affirmations based on God's truth</Text>
                                     </View>
                                 </View>
@@ -299,18 +413,60 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                 colors={['rgba(255,235,59,0.3)', 'rgba(255,152,0,0.2)']}
                                 style={styles.cardGradient}
                             >
-                                <Text style={styles.cardIcon}></Text>
+                                <Animated.View
+                                    style={[
+                                        styles.cardIconContainer,
+                                        {
+                                            transform: [
+                                                {
+                                                    rotate: iconRotateAnims[3].interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0deg', '360deg'],
+                                                    }),
+                                                },
+                                                { scale: iconPulseAnims[3] },
+                                            ],
+                                        },
+                                    ]}
+                                >
+                                    <SpiritualIcons.Hope size={48} gradient={true} color="#FFFFFF" />
+                                </Animated.View>
                                 <Text style={styles.cardTitle}>Coming Soon</Text>
                                 <Text style={styles.cardText}>
                                     We're just getting started! Future updates will include:
                                 </Text>
                                 <View style={styles.comingSoonList}>
-                                    <Text style={styles.comingSoonItem}> Digital bookstore with inspiring reads</Text>
-                                    <Text style={styles.comingSoonItem}> Charity platform to give back</Text>
-                                    <Text style={styles.comingSoonItem}> Community groups and discussions</Text>
-                                    <Text style={styles.comingSoonItem}> Personal spiritual growth tracking</Text>
-                                    <Text style={styles.comingSoonItem}> Smart prayer reminders</Text>
+                                <View style={styles.comingSoonItem}>
+                                    <View style={styles.comingSoonIconContainer}>
+                                        <SpiritualIcons.Faith size={16} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.comingSoonText}>Digital bookstore with inspiring reads</Text>
                                 </View>
+                                <View style={styles.comingSoonItem}>
+                                    <View style={styles.comingSoonIconContainer}>
+                                        <SpiritualIcons.Gratitude size={16} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.comingSoonText}>Charity platform to give back</Text>
+                                </View>
+                                <View style={styles.comingSoonItem}>
+                                    <View style={styles.comingSoonIconContainer}>
+                                        <SpiritualIcons.Love size={16} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.comingSoonText}>Community groups and discussions</Text>
+                                </View>
+                                <View style={styles.comingSoonItem}>
+                                    <View style={styles.comingSoonIconContainer}>
+                                        <SpiritualIcons.Strength size={16} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.comingSoonText}>Personal spiritual growth tracking</Text>
+                                </View>
+                                <View style={styles.comingSoonItem}>
+                                    <View style={styles.comingSoonIconContainer}>
+                                        <SpiritualIcons.Hope size={16} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.comingSoonText}>Smart prayer reminders</Text>
+                                </View>
+                            </View>
                             </LinearGradient>
                         </BlurView>
                     </Animated.View>
@@ -340,8 +496,10 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                     colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                                     style={styles.contactButtonGradient}
                                 >
-                                    <Text style={styles.contactButtonIcon}>📧</Text>
-                                    <Text style={styles.contactButtonText}>Email Me</Text>
+                                    <View style={styles.contactIconContainer}>
+                                        <SpiritualIcons.Love size={18} gradient={true} color="#FFFFFF" />
+                                    </View>
+                                    <Text style={styles.contactButtonText}>Email Us</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
 
@@ -353,7 +511,9 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                                     colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                                     style={styles.contactButtonGradient}
                                 >
-                                    <Text style={styles.contactButtonIcon}>📱</Text>
+                                    <View style={styles.contactIconContainer}>
+                                        <SpiritualIcons.Hope size={18} gradient={true} color="#FFFFFF" />
+                                    </View>
                                     <Text style={styles.contactButtonText}>Follow Us</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -369,9 +529,11 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
                             },
                         ]}
                     >
-                        <Text style={styles.footerText}>
-                            Made with heart and lots of prayer
-                        </Text>
+                        <View style={styles.footerHeartContainer}>
+                            <Text style={styles.footerText}>Made with </Text>
+                            <SpiritualIcons.Love size={14} gradient={true} color="#FFFFFF" />
+                            <Text style={styles.footerText}> and lots of prayer</Text>
+                        </View>
                         <Text style={styles.footerText}>
                             Version 1.0.0 • Module 2 Project
                         </Text>
@@ -535,9 +697,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    cardIcon: {
-        fontSize: 48,
+    cardIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 16,
+        width: 64,
+        height: 64,
     },
 
     cardTitle: {
@@ -572,10 +737,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
     },
 
-    featureEmoji: {
-        fontSize: 20,
-        marginRight: 12,
+    featureIconContainer: {
         width: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
     },
 
     featureText: {
@@ -592,12 +758,10 @@ const styles = StyleSheet.create({
     },
 
     comingSoonItem: {
-        fontSize: 16,
-        fontFamily: 'Outfit_400Regular',
-        color: 'rgba(255, 255, 255, 0.95)',
-        marginBottom: 8,
-        lineHeight: 24,
-        textAlign: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        paddingHorizontal: 8,
     },
 
     contactSection: {
@@ -645,8 +809,11 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.3)',
     },
 
-    contactButtonIcon: {
-        fontSize: 18,
+    contactIconContainer: {
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 8,
     },
 
@@ -689,4 +856,27 @@ const styles = StyleSheet.create({
     bottomSpacing: {
         height: 100,
     },
+
+    comingSoonIconContainer: {
+    width: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+},
+
+comingSoonText: {
+    fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: 'rgba(255, 255, 255, 0.95)',
+    lineHeight: 24,
+    flex: 1,
+},
+
+footerHeartContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+},
+
 });
