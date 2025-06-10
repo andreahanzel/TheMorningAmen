@@ -1,4 +1,10 @@
 // src/views/screens/auth/ForgotPasswordScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Forgot Password Screen for The Morning Amen app -this screen allows users to reset their password by entering their email address.
 // Features: Email validation, user existence check, animated UI, and comprehensive messaging
 

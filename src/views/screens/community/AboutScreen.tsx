@@ -1,4 +1,10 @@
 // src/views/screens/community/AboutScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // About screen with ministry story and vision
 // This screen shares the heart behind The Morning Amen app
 

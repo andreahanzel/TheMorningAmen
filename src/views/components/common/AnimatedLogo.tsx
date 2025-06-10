@@ -1,4 +1,11 @@
 // src/views/components/common/AnimatedLogo.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
+
 // Animated 3D-style logo component for React Native
 // Morning Amen's beautiful rotating logo with particles and animations
 

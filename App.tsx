@@ -1,4 +1,10 @@
 // App.tsx 
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // This is the main entry point for the React Native app.
 // It initializes the app, loads custom fonts, and displays the main content.
 

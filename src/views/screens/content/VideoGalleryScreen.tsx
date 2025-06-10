@@ -1,4 +1,10 @@
 // src/views/screens/content/VideoGalleryScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Video gallery screen
 // This screen displays inspirational videos in a grid layout with play functionality
 

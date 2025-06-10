@@ -1,4 +1,10 @@
 // src/views/screens/auth/SignUpScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // This file is part of the TMA project. - This file defines the SignUpScreen component that allows users to register for the application.
 // TMA is a React Native application designed to provide a seamless user experience.
 

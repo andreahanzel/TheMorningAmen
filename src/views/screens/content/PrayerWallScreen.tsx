@@ -1,5 +1,12 @@
 // src/views/screens/content/PrayerWallScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Enhanced Prayer Wall with custom icons, comments, images, and daily prayer tracking
+//This file implements the Prayer Wall screen, allowing users to share prayer requests, view others' prayers, and interact with comments and images.
 
 import React, { useState, useRef, useEffect } from 'react';
 import {

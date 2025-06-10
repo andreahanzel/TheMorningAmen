@@ -1,4 +1,10 @@
 // src/views/screens/auth/AuthInput.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Reusable input component for authentication screens
 // This file defines the AuthInput component
 // It provides a customizable input field with validation, error handling, and optional password visibility toggle

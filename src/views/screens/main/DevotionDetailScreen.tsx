@@ -1,6 +1,11 @@
 // src/views/screens/main/DevotionDetailScreen.tsx
 //This file is part of The Morning Amen app, a React Native application for daily devotions and spiritual growth.
 
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Import necessary libraries and components
 import React, { useState, useRef, useEffect } from 'react';
 import {

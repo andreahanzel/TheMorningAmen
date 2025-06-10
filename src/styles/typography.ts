@@ -1,4 +1,11 @@
 // src/styles/typography.ts
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
+
 // Typography system for The Morning Amen logo
 // This file defines the typography styles used in the app, including font families, sizes, weights, and predefined text styles that match the logo aesthetic.
 

@@ -1,6 +1,16 @@
 # The Morning Amen - Mobile Devotional App
 
-## Overview
+## This project is protected by a custom license. See `LICENSE.txt` for details
+
+## This project is licensed under a custom copyright license. ⚠️ Unauthorized reuse strictly prohibited
+
+## © 2025 Andrea Toreki. All rights reserved. This app and its source code were developed as part of a private academic project for BYU–Idaho (CSE 310)  
+
+**Not for commercial reuse, redistribution, or modification without written permission.**
+
+![License: Custom](https://img.shields.io/badge/license-Custom-blue)
+
+## OVERVIEW
 
 As a software engineer passionate about both technology and faith, I created The Morning Amen to bridge the gap between spiritual growth and modern mobile technology. This React Native application serves as a daily companion for people seeking to strengthen their relationship with God through structured devotionals, inspirational videos, and community prayer support.
 

@@ -1,4 +1,10 @@
 // src/views/components/cards/DevotionCard.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Reusable devotion card component with glassmorphism design
 // This component displays a devotion with a title, excerpt, verse, author, and category.
 // It includes a favorite toggle button and supports animations for smooth transitions.

@@ -1,4 +1,10 @@
 // src/models/services/AuthService.ts
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Complete authentication service with social login integration
 // This file is responsible for managing user authentication, including login, signup, and social sign-in methods.
 

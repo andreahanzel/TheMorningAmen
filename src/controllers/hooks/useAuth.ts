@@ -2,6 +2,11 @@
 // Custom hook for authentication with additional utilities
 // This file defines a custom hook for managing authentication in the application, providing functionalities to log in, sign up, social login, logout, and reset password with feedback mechanisms.
 
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 import { useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { authService, User, LoginCredentials, SignUpCredentials } from '../../models/services/AuthService';

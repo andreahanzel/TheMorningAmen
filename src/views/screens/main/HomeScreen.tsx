@@ -1,4 +1,10 @@
 // src/views/screens/main/HomeScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Enhanced HomeScreen with preserved functionality + News & Bible Reading + Responsive Design
 // This file is responsible for the main home screen of the app, featuring user greetings, daily highlights, and quick access to various features.
 // It includes responsive design for different screen sizes, animations, and a modern UI with gradient backgrounds and blur effects.

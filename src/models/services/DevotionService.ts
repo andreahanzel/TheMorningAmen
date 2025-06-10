@@ -2,6 +2,11 @@
 // Service for managing devotional content and favorites
 // This service handles fetching, storing, and manipulating devotion data.
 
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import devotionsData from '../data/devotions.json';
 
@@ -45,6 +50,7 @@ class DevotionService {
             // Load devotions and mark favorites
             this.devotions = devotionsData.map(devotion => ({
                 ...devotion,
+                image: (devotion as any).image ?? '', // Ensure image property exists
                 isFavorite: this.favorites.includes(devotion.id)
             }));
         } catch (error) {

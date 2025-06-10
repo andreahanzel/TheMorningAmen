@@ -1,4 +1,10 @@
 // src/views/screens/content/DevotionsScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // This file is part of the Daily Devotions app, providing a daily devotional experience with animations and interactive features.
 // It is designed to be visually appealing and user-friendly, showcasing daily devotions with a focus on spiritual growth and community engagement.
 

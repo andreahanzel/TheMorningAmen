@@ -1,4 +1,11 @@
 // src/styles/colors.ts
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
+
 // Color palette extracted from The Morning Amen logo design I designed
 // This file defines a color palette for use in the app, including primary, secondary, neutral, spiritual, gradients, and status colors.
 // The colors are inspired by the logo's gradient and spiritual themes, providing a cohesive and calming aesthetic.

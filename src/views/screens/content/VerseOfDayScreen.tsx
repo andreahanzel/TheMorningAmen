@@ -1,5 +1,13 @@
 // src/views/screens/content/VerseOfDayScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Updated to use custom spiritual icons instead of emojis
+// This file defines the Verse of the Day screen, which displays a daily verse with reflection and application sections.
+// It includes animations, custom icons, and a share functionality.
 
 import React, { useState, useRef, useEffect } from 'react';
 import {

@@ -1,4 +1,10 @@
 // src/views/screens/auth/LoginScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // This is the login / sign-in screen for the app
 // Login screen with social authentication
 // This screen includes a mini logo, animated entrance effects, and a modern design

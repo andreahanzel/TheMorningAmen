@@ -1,4 +1,10 @@
 // src/views/screens/legal/PrivacyPolicyScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Privacy Policy Screen 
 // This screen displays the complete privacy policy for users
 // of the app, with a focus on readability and user experience.

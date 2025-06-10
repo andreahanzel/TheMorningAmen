@@ -1,4 +1,10 @@
 // src/components/icons/SpiritualIcons.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Custom spiritual-themed icons 
 // This file contains a set of spiritual icons designed to represent various themes such as joy, strength, purpose, rest, hope, peace, trust, love, renewal, and new life.
 // Using React Native SVG for scalable, customizable icons

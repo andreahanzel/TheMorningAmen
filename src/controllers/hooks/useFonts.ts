@@ -2,6 +2,12 @@
 // This file defines a custom hook to load and manage fonts in the app/
 // This hook uses the `useFonts` hook from `expo-font` to load a set of fonts from Google Fonts.
 
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
+
 import { useFonts } from 'expo-font';
 import {
     Outfit_300Light,

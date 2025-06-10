@@ -1,4 +1,10 @@
 // src/views/screens/legal/TermsAndConditionsScreen.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Terms and Conditions Screen 
 // This screen displays the complete terms of service for users that will be available in the app.
 

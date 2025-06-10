@@ -1,0 +1,66 @@
+THE MORNING AMEN – OFFICIAL LICENSE
+© 2025 Andrea Toreki. All rights reserved.
+
+This project, including all source code, visual assets, data files, designs, and written content (collectively referred to as "The Morning Amen App"), is the sole intellectual property of Andrea Toreki. It is protected under U.S. and international copyright, trademark, and intellectual property laws.
+
+-------------------------
+
+PROJECT STATUS
+
+This repository is part of an academic course submission (CSE 310: Applied Programming, BYU–Idaho) and is made public solely for educational review and grading purposes. The Morning Amen App is a prototype under active development with future plans for commercial distribution.
+
+-------------------------
+
+UNAUTHORIZED USE IS STRICTLY PROHIBITED
+
+The following are expressly prohibited without prior written permission from the author:
+
+- Cloning, copying, redistributing, or publishing this code or any derivative work.
+
+- Using the code, structure, or design in other academic projects or personal apps.
+
+- Integrating any part of this project into a public-facing, commercial, or open-source application.
+
+- Sharing this work with third parties or storing it on public code-sharing platforms (e.g., GitHub, GitLab, Bitbucket) outside the intended course scope.
+
+- Violations will be considered both academic misconduct and a breach of copyright law.
+
+-------------------------
+
+ALLOWED FOR ACADEMIC PURPOSES ONLY
+
+- Permitted only in the following contexts:
+
+- BYU–Idaho course instructors and TAs reviewing code for grading and instructional feedback.
+
+- Classmates observing code structure with no reuse or duplication.
+
+- ChatGPT or AI tools generating derivative tests or advice under personal account ownership.
+
+-------------------------
+
+FUTURE COMMERCIAL RELEASE
+
+The Morning Amen App is intended for future commercial and spiritual ministry use. Upon release, licensing terms will change and this codebase will no longer be available for public view. Any use beyond this academic period must be reauthorized.
+
+Trademark rights to "The Morning Amen" and related branding are currently being reviewed for legal protection.
+
+-------------------------
+
+DISCLAIMER
+
+The Morning Amen App is offered in good faith. No warranties are made regarding its performance or security.
+
+-------------------------
+
+CONTACT FOR PERMISSION OR COLLABORATION
+
+Andrea Toreki 
+trky.andrea@gmail.com
+info@themorningamen.com
+https://github.com/andreahanzel
+
+-------------------------
+
+May God bless the hands that build with integrity. ✝️
+

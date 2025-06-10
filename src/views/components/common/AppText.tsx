@@ -1,4 +1,10 @@
 // src/views/components/common/AppText.tsx
+
+// © 2025 Andrea Toreki. All rights reserved.
+// This source code is part of an academic project currently under development.
+// Unauthorized reuse, reproduction, or distribution is strictly prohibited.
+// Commercial release is planned; licensing details subject to change.
+
 // Reusable text component with built-in typography styles
 // This component provides a consistent way to render text with different styles and colors throughout the app.
 // It uses the typography system defined in src/styles/typography.ts and colors from src/styles/colors.ts.
