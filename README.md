@@ -26,7 +26,7 @@ To run the development server on the computer:
 
 My purpose for writing this software was to deepen my understanding of React Native development while creating something meaningful that could impact people's spiritual lives. This project allowed me to explore mobile-specific features like AsyncStorage for data persistence, gesture handling for intuitive navigation, and creating responsive designs that work beautifully across different screen sizes.
 
-[Software Demo Video](https://youtu.be/yRQD-PtlJn4)
+[Software Demo Video](https://youtu.be/7sJDiy9GjiU)
 
 ## Mobile App Features
 
