@@ -1,2 +1,0 @@
-// This file will be the storage utility file, which will provide functions to manage local storage operations in the application.
-// ALso, it will provide functions to manage session storage operations in the application.

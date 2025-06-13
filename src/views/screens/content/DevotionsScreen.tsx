@@ -42,7 +42,6 @@ const devotionsData = [
         verseText: 'Be still and know that I am God.',
         author: 'Andrea Toreki',
         category: 'Peace',
-        image: '🌊',
         isFavorite: false,
     },
     {
@@ -56,7 +55,6 @@ const devotionsData = [
         verseText: 'Give thanks in all circumstances; for this is God\'s will for you in Christ Jesus.',
         author: 'Andrea Toreki',
         category: 'Gratitude',
-        image: '🙏',
         isFavorite: true,
     },
     {
@@ -70,7 +68,6 @@ const devotionsData = [
         verseText: 'Now faith is confidence in what we hope for and assurance about what we do not see.',
         author: 'Andrea Toreki',
         category: 'Faith',
-        image: '✨',
         isFavorite: false,
     },
     {
@@ -84,7 +81,6 @@ const devotionsData = [
         verseText: 'We love because he first loved us.',
         author: 'Andrea Toreki',
         category: 'Love',
-        image: '💝',
         isFavorite: false,
     },
     {
@@ -98,7 +94,6 @@ const devotionsData = [
         verseText: 'The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning.',
         author: 'Andrea Toreki',
         category: 'Hope',
-        image: '🌅',
         isFavorite: true,
     },
 ];

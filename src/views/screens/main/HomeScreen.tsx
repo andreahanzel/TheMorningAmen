@@ -29,6 +29,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { BibleIcon, PrayerIcon, PlayIcon, NewsIcon, SunriseIcon, StarIcon, SearchIcon, CrossIcon } from '../../components/icons/CustomIcons';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+import { testFirebaseConnection } from '../../../utils/firebaseTest';
+import { 
+    initializeFirebaseData, 
+    checkFirebaseCollections, 
+    testDevotionsCollection 
+    } from '../../../utils/firebaseDataInit';
+
 
 // Import your custom theme
 import { colors } from '../../../styles/colors';
@@ -119,6 +126,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 
         return () => clearInterval(timeInterval);
     }, []);
+
+    // Function to test Firebase connection
+    const handleTestFirebase = async () => {
+    console.log('🔥 Testing Firebase connection...');
+    const result = await testFirebaseConnection();
+    
+    if (result.success) {
+        Alert.alert('Firebase Connected!', `Document created with ID: ${result.documentId}`);
+    } else {
+        Alert.alert('Firebase Error', result.error);
+    }
+};
 
     const loadUserData = async () => {
         try {
@@ -818,23 +837,39 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 
                             <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
-                                onPress={() => handleCardPress('About')}
-                            >
+                                onPress={initializeFirebaseData}
+                                >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <CrossIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
-                                    <Text style={styles.quickActionText}>About</Text>
+                                    <Text style={styles.quickActionText}>Init Data</Text>
                                 </BlurView>
-                            </Pressable>
+                                </Pressable>
 
-                            <Pressable
+                                <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
-                                onPress={() => handleCardPress('Settings')}
-                            >
+                                onPress={checkFirebaseCollections}
+                                >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <SearchIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
-                                    <Text style={styles.quickActionText}>Settings</Text>
+                                    <Text style={styles.quickActionText}>Check Data</Text>
                                 </BlurView>
-                            </Pressable>
+                                </Pressable>
+
+                                <Pressable
+                                style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
+                                onPress={testDevotionsCollection}
+                                >
+                                <BlurView intensity={20} style={styles.quickActionGradient}>
+                                    <Text style={styles.quickActionText}>Test Devotions</Text>
+                                </BlurView>
+                                </Pressable>
+
+                                <Pressable
+                                style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
+                                onPress={handleTestFirebase}
+                                >
+                                <BlurView intensity={20} style={styles.quickActionGradient}>
+                                    <Text style={styles.quickActionText}>Test Connection</Text>
+                                </BlurView>
+                                </Pressable>
                         </View>
                     </Animated.View>
 

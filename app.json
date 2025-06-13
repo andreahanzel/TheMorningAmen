@@ -15,17 +15,18 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.andreatorkei.themorningamen"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ff9a56"
-      }
+      },
+      "package": "com.andreatorkei.themorningamen"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     }
-    // Removed invalid "expo-font" plugin entry
   }
 }
