@@ -29,11 +29,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { BibleIcon, PrayerIcon, PlayIcon, NewsIcon, SunriseIcon, StarIcon, SearchIcon, CrossIcon } from '../../components/icons/CustomIcons';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+import { FirebaseService } from '../../../models/services/FirebaseService';
 import { testFirebaseConnection } from '../../../utils/firebaseTest';
 import { 
     initializeFirebaseData, 
     checkFirebaseCollections, 
-    testDevotionsCollection 
+    testDevotionsCollection,
+    clearAllFirebaseData
     } from '../../../utils/firebaseDataInit';
 
 
@@ -62,6 +64,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [featuredDevotion, setFeaturedDevotion] = useState<any>(null);
+    const [todaysVerse, setTodaysVerse] = useState<any>(null);
+    const [firebaseLoading, setFirebaseLoading] = useState(false);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -115,6 +120,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
     // This effect runs on component mount to load user data and start animations
     useEffect(() => {
         loadUserData();
+        loadFirebaseData();
         startAnimations();
         startFloatingAnimation();
         startSpiritualIconAnimations();
@@ -129,7 +135,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 
     // Function to test Firebase connection
     const handleTestFirebase = async () => {
-    console.log('🔥 Testing Firebase connection...');
+    console.log('Testing Firebase connection...');
     const result = await testFirebaseConnection();
     
     if (result.success) {
@@ -139,6 +145,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
     }
 };
 
+    // Function to test Firebase connection and add a test document
     const loadUserData = async () => {
         try {
             const userData = await AsyncStorage.getItem('@current_user');
@@ -147,6 +154,33 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
             }
         } catch (error) {
             console.error('Error loading user data:', error);
+        }
+    };
+
+    const loadFirebaseData = async () => {
+    try {
+        setFirebaseLoading(true);
+        console.log('Loading Firebase data for HomeScreen...');
+        
+        // Load featured devotion (most recent)
+        const devotions = await FirebaseService.getAllDevotions();
+            if (devotions && devotions.length > 0) {
+                setFeaturedDevotion(devotions[0]);
+                // Only log the id, since 'title' may not exist on the type
+                console.log('Featured devotion loaded:', devotions[0]?.id || 'Devotion loaded');
+            }
+            
+            // Load today's verse
+            const verse = await FirebaseService.getTodaysVerse();
+            if (verse) {
+                setTodaysVerse(verse);
+                console.log('Today\'s verse loaded:', (verse && 'verse' in verse ? (verse as any).verse : verse?.id) || 'Verse loaded');
+            }
+            
+        } catch (error) {
+            console.error('Error loading Firebase data:', error);
+        } finally {
+            setFirebaseLoading(false);
         }
     };
 
@@ -255,10 +289,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 // Refresh control for pull-to-refresh functionality
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        // Simulate refresh
-        setTimeout(() => {
+        // Reload both user data and Firebase data
+        Promise.all([
+            loadUserData(),
+            loadFirebaseData()
+        ]).finally(() => {
             setRefreshing(false);
-        }, 1000);
+        });
     }, []);
 
     // Get greeting based on current time
@@ -665,13 +702,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                                         Today's Blessing
                                     </Text>
                                 </View>
-                                <Text style={[
-                                    styles.highlightVerse,
-                                    { fontSize: isLargeScreen ? 18 : 16 }
-                                ]}>
-                                    "This is the day that the Lord has made; let us rejoice and be glad in it."
+                                <Text style={[styles.highlightVerse, { fontSize: isLargeScreen ? 18 : 16 }]}>
+                                    {todaysVerse ? `"${todaysVerse.text}"` : '"This is the day that the Lord has made; let us rejoice and be glad in it."'}
                                 </Text>
-                                <Text style={styles.highlightReference}>- Psalm 118:24</Text>
+                                <Text style={styles.highlightReference}>
+                                    {todaysVerse ? `- ${todaysVerse.verse}` : '- Psalm 118:24'}
+                                </Text>
                                 
                                 <Pressable
                                     style={styles.highlightButton}
@@ -807,7 +843,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 
                     </Animated.View>
 
-                    {/* Quick Actions - Enhanced with responsive design */}
+                    {/* Quick Actions  */}
                     <Animated.View
                         style={[
                             styles.quickActionsSection,
@@ -842,34 +878,44 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
                                     <Text style={styles.quickActionText}>Init Data</Text>
                                 </BlurView>
-                                </Pressable>
+                            </Pressable>
 
-                                <Pressable
+                            <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
                                 onPress={checkFirebaseCollections}
                                 >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
                                     <Text style={styles.quickActionText}>Check Data</Text>
                                 </BlurView>
-                                </Pressable>
+                            </Pressable>
 
-                                <Pressable
+                            {/* NEW CLEAR DATA BUTTON */}
+                            <Pressable
+                                style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
+                                onPress={clearAllFirebaseData}
+                                >
+                                <BlurView intensity={20} style={styles.quickActionGradient}>
+                                    <Text style={styles.quickActionText}>Clear Data</Text>
+                                </BlurView>
+                            </Pressable>
+
+                            <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
                                 onPress={testDevotionsCollection}
                                 >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
                                     <Text style={styles.quickActionText}>Test Devotions</Text>
                                 </BlurView>
-                                </Pressable>
+                            </Pressable>
 
-                                <Pressable
+                            <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
                                 onPress={handleTestFirebase}
                                 >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
                                     <Text style={styles.quickActionText}>Test Connection</Text>
                                 </BlurView>
-                                </Pressable>
+                            </Pressable>
                         </View>
                     </Animated.View>
 

@@ -21,16 +21,11 @@ import { VideoGalleryScreen } from '../../views/screens/content/VideoGalleryScre
 import { PrayerWallScreen } from '../../views/screens/content/PrayerWallScreen';
 import { VerseOfDayScreen } from '../../views/screens/content/VerseOfDayScreen';
 import { AboutScreen } from '../../views/screens/community/AboutScreen';
+import { ProfileScreen } from '../../views/screens/user/ProfileScreen';
+import { FavoritesScreen } from '../../views/screens/user/FavoritesScreen';
 import { NavigationIcons } from '../../views/components/icons/NavigationIcons';
 
 
-// Profile placeholder - you can create this later
-const ProfileScreen = () => (
-    <LinearGradient colors={['#ff9a56', '#ff6b35', '#f7931e']} style={styles.placeholderContainer}>
-        <Text style={styles.placeholderText}>👤 Profile</Text>
-        <Text style={styles.placeholderSubtext}>Your spiritual journey</Text>
-    </LinearGradient>
-);
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -142,6 +137,7 @@ const ProfileStackNavigator = () => {
             }}
         >
             <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+            <Stack.Screen name="Favorites" component={FavoritesScreen} />
             <Stack.Screen name="About" component={AboutScreen} />
             {/* Add settings and other profile-related screens here */}
         </Stack.Navigator>

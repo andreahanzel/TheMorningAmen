@@ -922,6 +922,73 @@ export const SendIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gr
     </Svg>
 );
 
+    // Save Icon - Sacred Preservation
+    export const SaveIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path
+                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                stroke={gradient ? "#4caf50" : color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+            <Path d="m17 21 0-8-8 0 0 8" stroke={gradient ? "#4caf50" : color} strokeWidth="2" />
+            <Path d="M7 3v5h8" stroke={gradient ? "#4caf50" : color} strokeWidth="2" />
+        </Svg>
+    );
+
+    // Camera Icon - Sacred Vision Capture
+    export const CameraIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path
+                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"
+                stroke={gradient ? "#667eea" : color}
+                strokeWidth="2"
+                fill="none"
+            />
+            <Circle cx="12" cy="13" r="4" stroke={gradient ? "#667eea" : color} strokeWidth="2" fill="none" />
+        </Svg>
+    );
+
+    // User Icon - Sacred Person
+    export const UserIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke={gradient ? "#ff6b35" : color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <Circle cx="12" cy="7" r="4" stroke={gradient ? "#ff6b35" : color} strokeWidth="2" fill="none" />
+        </Svg>
+    );
+
+    // Email Icon - Sacred Message
+    export const EmailIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                stroke={gradient ? "#4facfe" : color}
+                strokeWidth="2"
+                fill="none"
+            />
+            <Path d="m22 6-10 7L2 6" stroke={gradient ? "#4facfe" : color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+    );
+
+    // Calendar Icon - Sacred Time
+    export const CalendarIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke={gradient ? "#9c27b0" : color} strokeWidth="2" fill="none" />
+            <Path d="m16 2 0 4" stroke={gradient ? "#9c27b0" : color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="m8 2 0 4" stroke={gradient ? "#9c27b0" : color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="m3 10 18 0" stroke={gradient ? "#9c27b0" : color} strokeWidth="2" strokeLinecap="round" />
+        </Svg>
+    );
+
+    // Book Icon - Sacred Knowledge
+    export const BookIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" stroke={gradient ? "#2196f3" : color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </Svg>
+    );
+
 // Export all enhanced icons
 export default {
     PrayerIcon,

@@ -27,6 +27,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authService } from '../../../models/services/AuthService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -120,7 +121,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
     };
 
     // Function to handle sign up button press
-    const handleSignUp = async () => {
+        const handleSignUp = async () => {
         const errors: {[key: string]: string} = {};
         
         // Check for missing fields
@@ -156,55 +157,36 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
         setIsLoading(true);
         
         try {
-            // Get existing users from AsyncStorage
-            const existingUsers = await AsyncStorage.getItem('@registered_users');
-            let users: User[] = [];
-            
-            if (existingUsers) {
-                users = JSON.parse(existingUsers) as User[];
-            }
-            
-            // Check if user already exists
-            const userExists = users.find((user: User) => user.email.toLowerCase() === email.toLowerCase().trim());
-            
-            if (userExists) {
-                setValidationErrors({ email: 'User already exists with this email' });
-                setIsLoading(false);
-                return;
-            }
-            
-            // Create new user
-            const newUser = {
+            // Use Firebase Authentication instead of AsyncStorage
+            const { authService } = await import('../../../models/services/AuthService');
+            const response = await authService.signUpWithEmail({
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
-                email: email.toLowerCase().trim(),
-                password: password,
-                createdAt: new Date().toISOString()
-            };
+                email: email.trim(),
+                password
+            });
             
-            // Add new user to array
-            users.push(newUser);
-            
-            // Store updated users array
-            await AsyncStorage.setItem('@registered_users', JSON.stringify(users));
-            
-            // Store current user session
-            await AsyncStorage.setItem('@current_user', JSON.stringify({
-                email: newUser.email,
-                firstName: newUser.firstName,
-                lastName: newUser.lastName,
-                loginTime: new Date().toISOString()
-            }));
-            
-            setIsLoading(false);
-            onSignUp(); // Success - proceed to app
-            
+            if (response.success) {
+                // Store current user session for compatibility
+                await AsyncStorage.setItem('@current_user', JSON.stringify({
+                    email: response.user?.email,
+                    firstName: response.user?.firstName,
+                    lastName: response.user?.lastName,
+                    loginTime: new Date().toISOString()
+                }));
+                onSignUp(); // Success - proceed to app
+            } else {
+                setValidationErrors({
+                    email: response.error || 'Registration failed'
+                });
+            }
         } catch (error) {
             console.error('SignUp error:', error);
-            setIsLoading(false);
             setValidationErrors({
                 email: 'Registration failed. Please try again.',
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 

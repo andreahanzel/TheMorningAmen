@@ -30,6 +30,7 @@ import {
     import { LinearGradient } from 'expo-linear-gradient';
     import { Feather, FontAwesome } from '@expo/vector-icons';
     import AsyncStorage from '@react-native-async-storage/async-storage';
+    import { authService } from '../../../models/services/AuthService';
 
     const { width, height } = Dimensions.get('window');
 
@@ -92,7 +93,8 @@ import {
         ]).start();
     }, []);
 
-    const handleLogin = async () => {
+    // Handle login logic
+        const handleLogin = async () => {
         const errors: {[key: string]: string} = {};
         
         // Check for missing fields
@@ -119,47 +121,36 @@ import {
         setIsLoading(true);
         
         try {
-            // Get stored users from AsyncStorage
-            const storedUsers = await AsyncStorage.getItem('@registered_users');
-            let users = [];
+            // Use Firebase Authentication instead of AsyncStorage
+            const { authService } = await import('../../../models/services/AuthService');
+            const response = await authService.loginWithEmail({ 
+                email: email.trim(), 
+                password 
+            });
             
-            if (storedUsers) {
-                users = JSON.parse(storedUsers);
-            }
-            
-            // Check if user exists with matching email and password
-            const foundUser = users.find((user: User) => 
-                user.email.toLowerCase() === email.toLowerCase().trim() && 
-                user.password === password
-            );
-            
-            if (foundUser) {
-                // Store current user session
+            if (response.success) {
+                // Store current user session for compatibility
                 await AsyncStorage.setItem('@current_user', JSON.stringify({
-                    email: foundUser.email,
-                    firstName: foundUser.firstName,
-                    lastName: foundUser.lastName,
+                    email: response.user?.email,
+                    firstName: response.user?.firstName,
+                    lastName: response.user?.lastName,
                     loginTime: new Date().toISOString()
                 }));
-                
-                setIsLoading(false);
                 onLogin(); // Success - proceed to app
             } else {
-                // Authentication failed
-                setIsLoading(false);
                 setValidationErrors({
-                    email: 'Invalid email or password',
-                    password: 'Invalid email or password'
+                    email: response.error || 'Login failed',
+                    password: response.error || 'Login failed'
                 });
             }
-            
         } catch (error) {
             console.error('Login error:', error);
-            setIsLoading(false);
             setValidationErrors({
                 email: 'Login failed. Please try again.',
                 password: 'Login failed. Please try again.'
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 

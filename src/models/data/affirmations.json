@@ -1,41 +1,41 @@
 [
     {
-        "id": "1",
+        "id": "aff_001",
         "text": "I am fearfully and wonderfully made by God",
         "category": "Identity",
         "verse": "Psalm 139:14",
         "color": "#ff6b35"
     },
     {
-        "id": "2",
+        "id": "aff_002",
         "text": "God's love for me is unconditional and everlasting",
         "category": "Love",
         "verse": "Jeremiah 31:3",
         "color": "#ff8c42"
     },
     {
-        "id": "3",
+        "id": "aff_003",
         "text": "I can do all things through Christ who strengthens me",
         "category": "Strength",
         "verse": "Philippians 4:13",
         "color": "#ffa726"
     },
     {
-        "id": "4",
+        "id": "aff_004",
         "text": "God has plans to prosper me and give me hope",
         "category": "Purpose",
         "verse": "Jeremiah 29:11",
         "color": "#ffb74d"
     },
     {
-        "id": "5",
+        "id": "aff_005",
         "text": "I am chosen, beloved, and set apart by God",
         "category": "Identity",
         "verse": "1 Peter 2:9",
         "color": "#ffcc02"
     },
     {
-        "id": "6",
+        "id": "aff_006",
         "text": "God's grace is sufficient for every challenge I face",
         "emoji": "🌟",
         "category": "Grace",
@@ -43,42 +43,42 @@
         "color": "#ffd54f"
     },
     {
-        "id": "7",
+        "id": "aff_007",
         "text": "I walk by faith, not by sight",
         "category": "Faith",
         "verse": "2 Corinthians 5:7",
         "color": "#ffe082"
     },
     {
-        "id": "8",
+        "id": "aff_008",
         "text": "God's peace guards my heart and mind",
         "category": "Peace",
         "verse": "Philippians 4:7",
         "color": "#fff176"
     },
     {
-        "id": "9",
+        "id": "aff_009",
         "text": "I am more than a conqueror through Christ",
         "category": "Victory",
         "verse": "Romans 8:37",
         "color": "#fff59d"
     },
     {
-        "id": "10",
+        "id": "aff_0010",
         "text": "God works all things together for my good",
         "category": "Hope",
         "verse": "Romans 8:28",
         "color": "#fff9c4"
     },
     {
-        "id": "11",
+        "id": "aff_0011",
         "text": "I am God's masterpiece, created for good works",
         "category": "Purpose",
         "verse": "Ephesians 2:10",
         "color": "#ff9a56"
     },
     {
-        "id": "12",
+        "id": "aff_0012",
         "text": "God's mercies are new every morning",
         "category": "Renewal",
         "verse": "Lamentations 3:22-23",

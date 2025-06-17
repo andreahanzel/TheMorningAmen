@@ -9,38 +9,40 @@
 
 import { db } from '../../firebase.config';
 import { collection, addDoc, getDocs, doc, setDoc } from 'firebase/firestore';
+import { auth } from '../../firebase.config';
 
-export const testFirebaseConnection = async () => {
-    try {
+// Test Firebase connection and basic Firestore operations
+  export const testFirebaseConnection = async () => {
+      try {
           console.log('Testing Firebase connection...');
-                                
-          // Test 1: Write a test document
-          const testDoc = {
-          message: 'Hello from The Morning Amen!',
-          timestamp: new Date().toISOString(),
-          testConnection: true,
-          platform: 'expo'
-          };                       
-            
-        const docRef = await addDoc(collection(db, 'test'), testDoc);
-        console.log('Document written with ID:', docRef.id);
-        
-        // Test 2: Read documents
-        const querySnapshot = await getDocs(collection(db, 'test'));
-        console.log('Documents found:', querySnapshot.size);
-        
-        querySnapshot.forEach((doc) => {
-          console.log('Document:', doc.id, '=>', doc.data());
-        });
-        
-        return { success: true, documentId: docRef.id };
-        
-      } catch (error) {
-        console.error('Firebase connection failed:', error);
-        return { success: false, error: error.message };
-      }
-    };
+          
+                
+                // Test 1: Write a test document (no auth needed for test collection)
+                const testDoc = {
+                    message: 'Hello from The Morning Amen!',
+                    timestamp: new Date().toISOString(),
+                    testConnection: true,
+                    platform: 'expo'
+                };                       
+                    
+                const docRef = await addDoc(collection(db, 'test'), testDoc);
+                console.log('Document written with ID:', docRef.id);
+                
+                // Test 2: Read documents
+                const querySnapshot = await getDocs(collection(db, 'test'));
+                console.log('Documents found:', querySnapshot.size);
+                
+                return { success: true, documentId: docRef.id };
+                
+            } catch (error) {
+                console.error('Firebase connection failed:', error);
+                return { success: false, error: error.message };
+            }
+        };
+                                  
+  // (Removed duplicate and misplaced code block)
 
+  // Test Firestore CRUD operations
     export const testFirestoreOperations = async () => {
       try {
         console.log('Testing Firestore CRUD operations...');

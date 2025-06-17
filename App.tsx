@@ -26,6 +26,9 @@ import { LoginScreen } from './src/views/screens/auth/LoginScreen';
 import { SignUpScreen } from './src/views/screens/auth/SignUpScreen';
 import { ForgotPasswordScreen } from './src/views/screens/auth/ForgotPasswordScreen';
 import { RootNavigator } from './src/controllers/navigation/RootNavigator';
+import { AuthProvider } from './src/controllers/contexts/AuthContext';
+import { PrayerProvider } from './src/controllers/contexts/PrayerContext';
+import { FirebaseTest } from './src/views/components/FirebaseTest';
 
 
 const { width, height } = Dimensions.get('window');
@@ -380,21 +383,20 @@ export default function App() {
     };
 
     const navigateToScreen = (screen: AppState) => {
-        // Screen transition animation
-        Animated.sequence([
+        // Just animate the transition, but change screen immediately
         Animated.timing(screenTransition, {
             toValue: 0,
-            duration: 300,
+            duration: 200,
             useNativeDriver: true,
-        }),
-        Animated.timing(screenTransition, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-        }),
-        ]).start();
+        }).start(() => {
+            Animated.timing(screenTransition, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            }).start();
+        });
         
-        setTimeout(() => setCurrentScreen(screen), 300);
+        setCurrentScreen(screen); // No delay - change immediately
     };
 
     const handleBeginJourney = () => {
@@ -403,8 +405,7 @@ export default function App() {
 
     const handleSuccessfulAuth = () => {
         setIsAuthenticated(true);
-        navigateToScreen('main');
-        // Here later it navigates to the main app screens
+        setCurrentScreen('main');  // Changed from navigateToScreen('main') to setCurrentScreen('main')
         console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
     };
 
@@ -467,7 +468,13 @@ export default function App() {
             );
         
         case 'main':
-            return <RootNavigator />;
+            return (
+                <AuthProvider>
+                    <PrayerProvider>
+                        <RootNavigator />
+                    </PrayerProvider>
+                </AuthProvider>
+            );
         
         default: // 'welcome'
             return (
@@ -556,6 +563,9 @@ export default function App() {
                         <Text style={styles.buttonText}>Begin Your Journey</Text>
                         </LinearGradient>
                     </TouchableOpacity>
+
+                {__DEV__ && <FirebaseTest />}   
+                
                     </Animated.View>
                 )}
                 </View>

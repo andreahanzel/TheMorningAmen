@@ -30,6 +30,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { usePrayer } from '../../../controllers/contexts/PrayerContext';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 import { 
     PrayerIcon, 
@@ -78,7 +79,7 @@ interface PrayerWallScreenProps {
 }
 
 export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }) => {
-    const [prayers, setPrayers] = useState<Prayer[]>([]);
+    const { prayers, loading, addPrayer, updatePrayer, deletePrayer, prayForRequest: contextPrayForRequest, addComment: contextAddComment, likeComment: contextLikeComment } = usePrayer();
     const [showAddForm, setShowAddForm] = useState(false);
     const [showCommentsModal, setShowCommentsModal] = useState(false);
     const [selectedPrayerId, setSelectedPrayerId] = useState<string>('');
@@ -105,10 +106,10 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
     const categories = ['General', 'Healing', 'Family', 'Guidance', 'Gratitude', 'Strength'];
 
     useEffect(() => {
-        loadPrayers();
         startAnimations();
         requestPermissions();
-    }, []);
+        initializeCardAnimations(prayers.length);
+    }, [prayers.length]);
 
     useEffect(() => {
         console.log('Modal state changed:', { showAddForm });
@@ -139,49 +140,6 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         ]).start();
     };
 
-    const loadPrayers = async () => {
-        try {
-            const storedPrayers = await AsyncStorage.getItem('@prayers_v2');
-            if (storedPrayers) {
-                const parsedPrayers = JSON.parse(storedPrayers);
-                setPrayers(parsedPrayers);
-                initializeCardAnimations(parsedPrayers.length);
-            } else {
-                const samplePrayers: Prayer[] = [
-                    {
-                        id: '1',
-                        text: 'Please pray for my family during this difficult time. We need God\'s peace and guidance as we navigate through these challenges.',
-                        category: 'Family',
-                        isAnonymous: true,
-                        date: new Date().toISOString(),
-                        prayerCount: 12,
-                        userHasPrayed: false,
-                        authorId: 'sample1',
-                        comments: [],
-                        commentsCount: 0,
-                    },
-                    {
-                        id: '2',
-                        text: 'Grateful for God\'s blessings today. Praying for those who are struggling and need His comfort.',
-                        category: 'Gratitude',
-                        isAnonymous: false,
-                        authorName: 'Sarah',
-                        date: new Date(Date.now() - 86400000).toISOString(),
-                        prayerCount: 8,
-                        userHasPrayed: false,
-                        authorId: 'sample2',
-                        comments: [],
-                        commentsCount: 0,
-                    },
-                ];
-                setPrayers(samplePrayers);
-                await AsyncStorage.setItem('@prayers_v2', JSON.stringify(samplePrayers));
-                initializeCardAnimations(samplePrayers.length);
-            }
-        } catch (error) {
-            console.error('Error loading prayers:', error);
-        }
-    };
 
     const initializeCardAnimations = (count: number) => {
         cardAnims.length = 0;
@@ -205,7 +163,8 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        loadPrayers().finally(() => setRefreshing(false));
+        // Context automatically refreshes, just reset the loading state
+        setTimeout(() => setRefreshing(false), 1000);
     }, []);
 
     const showAddPrayerForm = () => {
@@ -260,43 +219,26 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         setIsSubmitting(true);
 
         try {
-            const prayer: Prayer = {
-                id: editingPrayerId || Date.now().toString(),
+            const prayerData = {
                 text: newPrayer.trim(),
                 category: selectedCategory,
                 isAnonymous,
                 authorName: isAnonymous ? undefined : authorName.trim(),
-                date: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.date || new Date().toISOString() : new Date().toISOString(),
-                prayerCount: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.prayerCount || 0 : 0,
-                userHasPrayed: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.userHasPrayed || false : false,
-                lastPrayedDate: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.lastPrayedDate : undefined,
                 imageUri: selectedImage || undefined,
-                authorId: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.authorId || userId : userId,
-                comments: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.comments || [] : [],
-                commentsCount: editingPrayerId ? prayers.find(p => p.id === editingPrayerId)?.commentsCount || 0 : 0,
+                authorId: userId,
+                userHasPrayed: false,
+                comments: [],
             };
 
-            let updatedPrayers;
             if (editingPrayerId) {
-                updatedPrayers = prayers.map(p => p.id === editingPrayerId ? prayer : p);
+                await updatePrayer(editingPrayerId, prayerData);
+                Alert.alert('Success', 'Prayer updated successfully! 🙏');
             } else {
-                updatedPrayers = [prayer, ...prayers];
-                cardAnims.unshift(new Animated.Value(0));
-                Animated.timing(cardAnims[0], {
-                    toValue: 1,
-                    duration: 500,
-                    useNativeDriver: true,
-                }).start();
+                await addPrayer(prayerData);
+                Alert.alert('Success', 'Prayer shared successfully! 🙏');
             }
 
-            setPrayers(updatedPrayers);
-            await AsyncStorage.setItem('@prayers_v2', JSON.stringify(updatedPrayers));
-
             hideAddPrayerForm();
-            Alert.alert(
-                editingPrayerId ? 'Prayer Updated' : 'Prayer Submitted', 
-                editingPrayerId ? 'Your prayer has been updated! 🙏' : 'Your prayer has been added to the wall. May God bless you! 🙏'
-            );
         } catch (error) {
             Alert.alert('Error', 'Failed to submit prayer. Please try again.');
         } finally {
@@ -304,6 +246,9 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         }
     };
 
+
+
+    // Check if user can pray for this request today
     const canPrayToday = (prayer: Prayer): boolean => {
         if (!prayer.lastPrayedDate) return true;
         
@@ -315,37 +260,17 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         return diffDays >= 1;
     };
 
-    const prayForRequest = async (prayerId: string) => {
+    // Function to handle praying for a request
+    const handlePrayForRequest = async (prayerId: string) => {
         try {
-            const prayer = prayers.find(p => p.id === prayerId);
-            if (!prayer) return;
-
-            if (!canPrayToday(prayer)) {
-                Alert.alert('Already Prayed Today', 'You can pray for this request once per day. Come back tomorrow! 🙏');
-                return;
-            }
-
-            const updatedPrayers = prayers.map(p => {
-                if (p.id === prayerId) {
-                    return {
-                        ...p,
-                        prayerCount: p.prayerCount + 1,
-                        userHasPrayed: true,
-                        lastPrayedDate: new Date().toISOString(),
-                    };
-                }
-                return p;
-            });
-
-            setPrayers(updatedPrayers);
-            await AsyncStorage.setItem('@prayers_v2', JSON.stringify(updatedPrayers));
-
-            Alert.alert('Prayer Sent 🙏', 'Your prayer has been added to this request. Thank you for your heart of compassion!');
-        } catch (error) {
-            console.error('Error updating prayer:', error);
+            await contextPrayForRequest(prayerId);
+            Alert.alert('Prayer Sent 🙏', 'Your prayer has been added to this request!');
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to pray for request');
         }
     };
 
+    // Wrapper to include canPrayToday check
     const editPrayer = (prayer: Prayer) => {
         if (prayer.authorId !== userId) {
             Alert.alert('Cannot Edit', 'You can only edit prayers you created.');
@@ -361,18 +286,11 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         showAddPrayerForm();
     };
 
-    const deletePrayer = async (prayerId: string) => {
-        const prayer = prayers.find(p => p.id === prayerId);
-        if (!prayer) return;
-
-        if (prayer.authorId !== userId) {
-            Alert.alert('Cannot Delete', 'You can only delete prayers you created.');
-            return;
-        }
-
+    // Function to handle deleting a prayer
+    const handleDeletePrayer = async (prayerId: string) => {
         Alert.alert(
             'Delete Prayer',
-            'Are you sure you want to delete this prayer? This action cannot be undone.',
+            'Are you sure you want to delete this prayer?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -380,12 +298,10 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const updatedPrayers = prayers.filter(p => p.id !== prayerId);
-                            setPrayers(updatedPrayers);
-                            await AsyncStorage.setItem('@prayers_v2', JSON.stringify(updatedPrayers));
-                            Alert.alert('Prayer Deleted', 'Your prayer has been removed from the wall.');
-                        } catch (error) {
-                            Alert.alert('Error', 'Failed to delete prayer. Please try again.');
+                            await deletePrayer(prayerId);
+                            Alert.alert('Success', 'Prayer deleted successfully');
+                        } catch (error: any) {
+                            Alert.alert('Error', error.message || 'Failed to delete prayer');
                         }
                     },
                 },
@@ -393,6 +309,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         );
     };
 
+    // Show comments modal
     const showComments = (prayerId: string) => {
         setSelectedPrayerId(prayerId);
         setShowCommentsModal(true);
@@ -450,9 +367,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                 return prayer;
             });
 
-            setPrayers(updatedPrayers);
-            await AsyncStorage.setItem('@prayers_v2', JSON.stringify(updatedPrayers));
-
+            await contextAddComment(selectedPrayerId, comment);
             // Clear form and close modal
             setNewComment('');
             setIsCommentAnonymous(true);
@@ -471,6 +386,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         }
     };
 
+    
     const likeComment = async (commentId: string) => {
         try {
             const updatedPrayers = prayers.map(prayer => {
@@ -490,8 +406,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                 return prayer;
             });
 
-            setPrayers(updatedPrayers);
-            await AsyncStorage.setItem('@prayers_v2', JSON.stringify(updatedPrayers));
+            await contextLikeComment(selectedPrayerId, commentId);
         } catch (error) {
             console.error('Error liking comment:', error);
         }
@@ -584,7 +499,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.actionButton}
-                                        onPress={() => deletePrayer(prayer.id)}
+                                        onPress={() => handleDeletePrayer(prayer.id)}
                                     >
                                         <DeleteIcon size={16} color="#FFFFFF" />
                                     </TouchableOpacity>
@@ -631,7 +546,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                                     styles.prayButton,
                                     !canPrayToday(prayer) && styles.prayButtonDisabled
                                 ]}
-                                onPress={() => prayForRequest(prayer.id)}
+                                onPress={() => handlePrayForRequest(prayer.id)}
                                 disabled={!canPrayToday(prayer)}
                             >
                                 <LinearGradient

@@ -17,7 +17,7 @@
         
         // Show loading message
         if (Platform.OS === 'web') {
-        console.log('📡 Uploading data to Firebase...');
+        console.log('Uploading data to Firebase...');
         }
         
         const result = await FirebaseService.initializeFirebaseData();

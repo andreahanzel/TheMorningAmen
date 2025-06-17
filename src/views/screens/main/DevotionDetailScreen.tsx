@@ -57,18 +57,18 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
             Animated.timing(fadeAnim, {
                 toValue: 1,
                 duration: 800,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
             Animated.timing(slideAnim, {
                 toValue: 0,
                 duration: 600,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
             Animated.spring(scaleAnim, {
                 toValue: 1,
                 tension: 50,
                 friction: 8,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
         ]).start();
 
@@ -78,12 +78,12 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
                 Animated.timing(iconRotateAnim, {
                     toValue: 1,
                     duration: 4000,
-                    useNativeDriver: true,
+                    useNativeDriver: false,
                 }),
                 Animated.timing(iconRotateAnim, {
                     toValue: 0,
                     duration: 4000,
-                    useNativeDriver: true,
+                    useNativeDriver: false,
                 }),
             ])
         ).start();
@@ -103,11 +103,14 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
         }).start();
     };
 
+    // Toggle favorite status
     const toggleFavorite = () => {
         setIsFavorite(!isFavorite);
-        // Here you would typically save to AsyncStorage or API
+        // TODO: In Module 3, we'll save favorites to Firebase
+        console.log(`Toggled favorite for: ${devotion.title}`);
     };
 
+    // Share the devotion
     const handleShare = async () => {
         try {
             const result = await Share.share({

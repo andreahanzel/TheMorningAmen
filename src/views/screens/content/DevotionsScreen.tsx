@@ -25,78 +25,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { SearchIcon, StarIcon } from '../../components/icons/CustomIcons';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+import { FirebaseService } from '../../../models/services/FirebaseService';
 
 
 const { width, height } = Dimensions.get('window');
 
-// Sample devotions data
-const devotionsData = [
-    {
-        id: '1',
-        title: 'Finding Peace in the Storm',
-        excerpt: 'When life gets overwhelming, remember that God is your anchor...',
-        content: 'Life often feels like a stormy sea, with waves of challenges crashing over us. In these moments, we can feel lost and overwhelmed. But Scripture reminds us that even in the fiercest storms, God is our anchor. He is the calm in our chaos, the peace in our panic. When Jesus walked on water during the storm, He showed His disciples—and us—that no storm is too great for our Savior. Today, whatever storm you are facing, remember that you are not alone. God is with you, and He will see you through.',
-        date: '2025-01-15',
-        readTime: '3 min read',
-        verse: 'Psalm 46:10',
-        verseText: 'Be still and know that I am God.',
-        author: 'Andrea Toreki',
-        category: 'Peace',
-        isFavorite: false,
-    },
-    {
-        id: '2',
-        title: 'The Power of Gratitude',
-        excerpt: 'Discovering joy through thankfulness in every season of life...',
-        content: 'Gratitude is more than just saying "thank you"—it\'s a posture of the heart that transforms how we see the world. When we choose gratitude, we shift our focus from what we lack to what we have been blessed with. This doesn\'t mean ignoring real struggles or pretending everything is perfect. Rather, it means choosing to see God\'s goodness even in difficult seasons. The apostle Paul wrote about giving thanks in all circumstances, not because every circumstance is good, but because God is good in every circumstance.',
-        date: '2025-01-14',
-        readTime: '4 min read',
-        verse: '1 Thessalonians 5:18',
-        verseText: 'Give thanks in all circumstances; for this is God\'s will for you in Christ Jesus.',
-        author: 'Andrea Toreki',
-        category: 'Gratitude',
-        isFavorite: true,
-    },
-    {
-        id: '3',
-        title: 'Walking in Faith',
-        excerpt: 'Taking the next step even when you can\'t see the whole staircase...',
-        content: 'Faith is often described as stepping into the unknown, trusting that God will provide solid ground beneath our feet. It\'s not about having all the answers or seeing the complete picture. Faith is about taking the next step, even when the path ahead seems unclear. Abraham left his homeland not knowing where God was leading him. Moses approached Pharaoh despite feeling inadequate. David faced Goliath with just a sling and stones. Each of these heroes of faith had one thing in common: they trusted God\'s heart even when they couldn\'t trace His hand.',
-        date: '2025-01-13',
-        readTime: '5 min read',
-        verse: 'Hebrews 11:1',
-        verseText: 'Now faith is confidence in what we hope for and assurance about what we do not see.',
-        author: 'Andrea Toreki',
-        category: 'Faith',
-        isFavorite: false,
-    },
-    {
-        id: '4',
-        title: 'Love Without Limits',
-        excerpt: 'Experiencing and sharing God\'s unconditional love in our relationships...',
-        content: 'God\'s love for us is unlike any human love we\'ve experienced. It\'s not based on our performance, our success, or our ability to earn it. His love is given freely, completely, and without condition. This kind of love changes everything about how we view ourselves and how we love others. When we truly understand that we are unconditionally loved by the Creator of the universe, it frees us to love others in the same way. We can love without fear of rejection, give without expecting return, and forgive because we have been forgiven.',
-        date: '2025-01-12',
-        readTime: '4 min read',
-        verse: '1 John 4:19',
-        verseText: 'We love because he first loved us.',
-        author: 'Andrea Toreki',
-        category: 'Love',
-        isFavorite: false,
-    },
-    {
-        id: '5',
-        title: 'New Mercies Every Morning',
-        excerpt: 'God\'s faithfulness refreshes us with each new day...',
-        content: 'Every sunrise brings with it a fresh supply of God\'s mercy and grace. No matter what happened yesterday—whether we succeeded or failed, whether we felt close to God or distant from Him—each new day is an opportunity for a fresh start. This is the beauty of God\'s faithfulness: it never runs out, never gets depleted, and never depends on our ability to earn it. His mercies are new every morning, as steady and reliable as the sunrise itself. Today is a gift, full of new possibilities and fresh grace.',
-        date: '2025-01-11',
-        readTime: '3 min read',
-        verse: 'Lamentations 3:22-23',
-        verseText: 'The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning.',
-        author: 'Andrea Toreki',
-        category: 'Hope',
-        isFavorite: true,
-    },
-];
+interface Devotion {
+    id: string;
+    title: string;
+    excerpt: string;
+    content: string;
+    date: string;
+    readTime: string;
+    verse: string;
+    verseText: string;
+    author: string;
+    category: string;
+    isFavorite: boolean;
+}
 
 interface DevotionsScreenProps {
     navigation: any;
@@ -104,20 +50,29 @@ interface DevotionsScreenProps {
 
 // This screen displays a list of daily devotions with animations, filtering, and interactive features.
 export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) => {
-    const [devotions, setDevotions] = useState(devotionsData);
+    const [devotions, setDevotions] = useState<Devotion[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
-    const cardAnims = useRef(devotions.map(() => new Animated.Value(0))).current;
-    const iconRotateAnims = useRef(devotions.map(() => new Animated.Value(0))).current;
+    const cardAnims = useRef<Animated.Value[]>([]).current;
+    const iconRotateAnims = useRef<Animated.Value[]>([]).current;
 
-
+    // Load devotions on mount and start animations
     useEffect(() => {
+        loadDevotions();
         startAnimations();
     }, []);
+
+    useEffect(() => {
+    // Reset category to 'All' when component mounts
+        setSelectedCategory('All');
+    }, []);
+
 
     const startAnimations = () => {
         // Main container animations
@@ -125,12 +80,12 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
             Animated.timing(fadeAnim, {
                 toValue: 1,
                 duration: 800,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
             Animated.timing(slideAnim, {
                 toValue: 0,
                 duration: 600,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
         ]).start();
 
@@ -140,12 +95,84 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                 toValue: 1,
                 duration: 500,
                 delay: index * 100,
-                useNativeDriver: true,
+                useNativeDriver: false,
             })
         );
 
         Animated.stagger(80, cardAnimations).start();
     };
+
+    // Load devotions from Firebase
+        const loadDevotions = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                console.log('Loading devotions from Firebase...');
+                
+                const firebaseDevotions = await FirebaseService.getAllDevotions();
+                
+                // DEBUG: Log raw Firebase data
+                console.log('Raw Firebase data:', firebaseDevotions);
+
+                if (!firebaseDevotions || firebaseDevotions.length === 0) {
+                    console.log('No devotions found, loading fallback data...');
+                    const fallbackDevotions = [
+                        {
+                            id: 'fallback_001',
+                            title: 'Finding Peace in the Storm',
+                            excerpt: 'When life gets overwhelming, remember that God is your anchor.',
+                            content: 'Life often feels like a stormy sea, with waves of challenges crashing over us relentlessly...',
+                            date: '2025-01-15',
+                            readTime: '4 min read',
+                            verse: 'Psalm 46:10',
+                            verseText: 'Be still and know that I am God.',
+                            author: 'Andrea Toreki',
+                            category: 'Peace',
+                            isFavorite: false,
+                        }
+                    ];
+                    setDevotions(fallbackDevotions);
+                    return;
+                }
+                                
+                // Process and validate data  
+                const processedDevotions = firebaseDevotions.map((d: any) => {
+                    console.log('Processing devotion:', d.id, 'Category:', d.category);
+                    return {
+                        id: d.id ?? '',
+                        title: d.title ?? '',
+                        excerpt: d.excerpt ?? '',
+                        content: d.content ?? '',
+                        date: d.date ?? '',
+                        readTime: d.readTime ?? '',
+                        verse: d.verse ?? '',
+                        verseText: d.verseText ?? '',
+                        author: d.author ?? '',
+                        category: d.category ?? '', // Make sure this is not undefined
+                        isFavorite: d.isFavorite ?? false,
+                    };
+                });
+                
+                setDevotions(processedDevotions);
+                
+                // Initialize animations
+                cardAnims.length = 0;
+                iconRotateAnims.length = 0;
+                processedDevotions.forEach(() => {
+                    cardAnims.push(new Animated.Value(0));
+                    iconRotateAnims.push(new Animated.Value(0));
+                });
+                
+                console.log(`Loaded ${processedDevotions.length} devotions from Firebase`);
+                
+            } catch (error) {
+                console.error('Error loading devotions:', error);
+                setError('Failed to load devotions. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
 
     // Toggle favorite status
     const toggleFavorite = (id: string) => {
@@ -161,63 +188,25 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
     // Refresh control handler
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        setTimeout(() => {
+        loadDevotions().finally(() => {
             setRefreshing(false);
-        }, 1000);
+        });
     }, []);
 
-    // Filter devotions by category
-    const categories = ['All', 'Peace', 'Gratitude', 'Faith', 'Love', 'Hope'];
+    // Categories for filtering
+    const categories = ['All', 'Peace', 'Gratitude', 'Faith', 'Love', 'Hope', 'Strength', 'Mindfulness', 'Patience'];
 
     // Filter devotions based on selected category
     const filteredDevotions = selectedCategory === 'All' 
         ? devotions 
-        : devotions.filter(d => d.category === selectedCategory);
+        : devotions.filter(d => d.category?.trim() === selectedCategory);
 
         // Animated icon rotations
-    const iconAnimations = iconRotateAnims.map((anim) =>
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(anim, {
-                    toValue: 1,
-                    duration: 4000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(anim, {
-                    toValue: 0,
-                    duration: 4000,
-                    useNativeDriver: true,
-                }),
-            ])
-        )
-    );
 
-iconAnimations.forEach(anim => anim.start());
 
     // Devotion card component
-    const DevotionCard = ({ devotion, index }: { devotion: any; index: number }) => (
-    <Animated.View
-        style={[
-            styles.devotionCard,
-            {
-                opacity: cardAnims[index],
-                transform: [
-                    {
-                        translateY: cardAnims[index].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [50, 0],
-                        }),
-                    },
-                    {
-                        scale: cardAnims[index].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.9, 1],
-                        }),
-                    },
-                ],
-            },
-        ]}
-    >
+    const DevotionCard = ({ devotion, index }: { devotion: Devotion; index: number }) => (
+        <View style={styles.devotionCard}>
         <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => navigation.navigate('DevotionDetail', { devotion })}
@@ -258,10 +247,14 @@ iconAnimations.forEach(anim => anim.start());
                             style={[
                                 styles.devotionIconWrapper,
                                 {
-                                    transform: [{ rotate: iconRotateAnims[index].interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ['0deg', '360deg'],
-                                    })}],
+                                    transform: [{
+                                        rotate: iconRotateAnims[index]
+                                            ? iconRotateAnims[index].interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: ['0deg', '360deg'],
+                                            })
+                                            : '0deg',
+                                    }],
                                 },
                             ]}
                         >
@@ -305,7 +298,7 @@ iconAnimations.forEach(anim => anim.start());
                 </View>
             </LinearGradient>
         </TouchableOpacity>
-    </Animated.View>
+    </View>
 );
 
     // Function to get category colors
@@ -330,7 +323,7 @@ iconAnimations.forEach(anim => anim.start());
 
     return (
         <>
-            <StatusBar barStyle="light-content" backgroundColor="#ff6b35" />
+        <StatusBar barStyle="light-content" backgroundColor="#ff6b35" />
             <LinearGradient
                 colors={['#ff9a56', '#ff6b35', '#f7931e']}
                 style={styles.container}
@@ -399,49 +392,58 @@ iconAnimations.forEach(anim => anim.start());
                     </ScrollView>
                 </Animated.View>
 
-                {/* Devotions List */}
-                <ScrollView
-                    style={[styles.devotionsList, { flex: 1 }]} // flex: 1
-                    contentContainerStyle={styles.devotionsContent}
-                    showsVerticalScrollIndicator={true} // true for web
-                    bounces={true}
-                    scrollEventThrottle={16}
-                    nestedScrollEnabled={true} // web compatibility
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
-                            tintColor="#FFFFFF"
-                            colors={['#ff6b35']}
-                        />
-                    }
-                >
-                    {filteredDevotions.map((devotion, index) => (
-                        <DevotionCard key={devotion.id} devotion={devotion} index={index} />
-                    ))}
-                    
-                    <View style={styles.bottomSpacing} />
-                </ScrollView>
+                    {/* Devotions List */}
+                    <ScrollView
+                        style={[styles.devotionsList, { flex: 1 }]}
+                        contentContainerStyle={styles.devotionsContent}
+                        showsVerticalScrollIndicator={true}
+                        bounces={true}
+                        scrollEventThrottle={16}
+                        nestedScrollEnabled={true}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                tintColor="#FFFFFF"
+                                colors={['#ff6b35']}
+                            />
+                        }
+                    >
+                        {loading && (
+                            <View style={styles.loadingContainer}>
+                                <Text style={styles.loadingText}>Loading devotions...</Text>
+                            </View>
+                        )}
 
-                {/* Background particles */}
-                <View style={styles.backgroundParticles}>
-                    {[...Array(8)].map((_, index) => (
-                        <View
-                            key={index}
-                            style={[
-                                styles.backgroundParticle,
-                                {
-                                    top: `${Math.random() * 100}%`,
-                                    left: `${Math.random() * 100}%`,
-                                },
-                            ]}
-                        />
-                    ))}
-                </View>
-            </LinearGradient>
-        </>
-    );
-};
+                        {error && (
+                            <View style={styles.errorContainer}>
+                                <Text style={styles.errorText}>{error}</Text>
+                                <TouchableOpacity style={styles.retryButton} onPress={loadDevotions}>
+                                    <Text style={styles.retryButtonText}>Retry</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}                  
+
+                        
+                        {!loading && !error && devotions.length === 0 && (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>No devotions available</Text>
+                            </View>
+                        )}
+                        
+                        {(filteredDevotions.length > 0 ? filteredDevotions : devotions).map((devotion, index) => (
+                            
+                            <DevotionCard key={devotion.id} devotion={devotion} index={index} />
+                        ))}
+                        
+                        <View style={styles.bottomSpacing} />
+                    </ScrollView>
+
+                    {/* Background particles section stays the same */}
+                </LinearGradient>
+            </>
+        );
+    };
 
 const styles = StyleSheet.create({
     container: {
@@ -501,10 +503,12 @@ const styles = StyleSheet.create({
 
     categoriesContainer: {
         marginBottom: 10,
+        maxHeight: 40,
     },
 
     categoriesContent: {
         paddingRight: 20,
+        paddingLeft: 5,
     },
 
     categoryButton: {
@@ -723,5 +727,52 @@ const styles = StyleSheet.create({
 
     bottomSpacing: {
         height: 100,
+    },
+
+    loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    },
+
+    loadingText: {
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.8)',
+        fontFamily: 'Outfit_400Regular',
+    },
+
+    errorContainer: {
+        padding: 40,
+        alignItems: 'center',
+    },
+
+    errorText: {
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.9)',
+        fontFamily: 'Outfit_400Regular',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+
+    retryButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+
+    retryButtonText: {
+        color: '#FFFFFF',
+        fontFamily: 'Outfit_600SemiBold',
+    },
+
+    emptyContainer: {
+        padding: 40,
+        alignItems: 'center',
+    },
+
+    emptyText: {
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.8)',
+        fontWeight: '400',
     },
 });
