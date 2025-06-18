@@ -61,3 +61,4 @@ firestore-debug.log
 *.p12
 *.mobileprovision
 *.keystore
+firebase.config.ts
