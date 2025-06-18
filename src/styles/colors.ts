@@ -27,6 +27,8 @@ export const colors = {
         mediumOrange: '#ff7043', // Inner circle medium
         warmCream: '#fff8e1',    // Subtitle color
         sunGlow: '#ffc107',      // Sun symbol color
+        success: '#4CAF50',   // Success color
+        error: '#F44336',    // Error color
     },
     
     // Neutral colors for UI

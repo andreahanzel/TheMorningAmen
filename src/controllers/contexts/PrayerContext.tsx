@@ -86,6 +86,7 @@ export const PrayerProvider: React.FC<PrayerProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<{id: string, name: string} | null>(null);
+    
 
     const { user: authUser } = useAuth();
 
@@ -167,16 +168,33 @@ export const PrayerProvider: React.FC<PrayerProviderProps> = ({ children }) => {
     };
 
     const deletePrayer = async (id: string) => {
-    try {
-        // For demo purposes, allow any user to delete any prayer
-        // In production, there will be proper authorization checks
-        await deleteDoc(doc(db, 'prayerRequests', id));
-    } catch (err) {
-        console.error('Error deleting prayer:', err);
-        setError('Failed to delete prayer');
-        throw err;
-    }
-};
+        try {
+            console.log('PrayerContext: Starting delete for prayer ID:', id);
+            
+            // Check if the document exists first
+            const prayerRef = doc(db, 'prayerRequests', id);
+            console.log('PrayerContext: Created document reference:', prayerRef.path);
+            
+            // Attempt the deletion
+            await deleteDoc(prayerRef);
+            console.log('PrayerContext: Delete operation completed successfully');
+            
+            // Verify the prayer is removed from local state
+            const stillExists = prayers.find(p => p.id === id);
+            console.log('PrayerContext: Prayer still in local state?', !!stillExists);
+            
+        } catch (err) {
+            console.error('PrayerContext: Error deleting prayer:', err);
+            console.error('PrayerContext: Error details:', {
+                name: err instanceof Error ? err.name : 'Unknown',
+                message: err instanceof Error ? err.message : String(err),
+                code: (err as any)?.code,
+                details: (err as any)?.details
+            });
+            setError('Failed to delete prayer');
+            throw err;
+        }
+    };
 
     const prayForRequest = async (prayerId: string) => {
         try {

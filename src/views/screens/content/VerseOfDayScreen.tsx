@@ -21,11 +21,17 @@ import {
     TouchableOpacity,
     Share,
     ScrollView,
+    Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { BackIcon, ShareIcon, PrayerIcon, CrossIcon } from '../../components/icons/CustomIcons';
+import { db } from '../../../../firebase.config';
+import { authService } from '../../../models/services/AuthService';
+import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
+import { StarIcon } from '../../components/icons/CustomIcons';
+import { getDoc } from 'firebase/firestore';
 
 // Import our custom spiritual icons
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
@@ -52,6 +58,7 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
     const [currentIndex, setCurrentIndex] = useState(0);
     const [verses] = useState<Verse[]>(versesData);
     const [showReflection, setShowReflection] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -65,6 +72,62 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         startAnimations();
         startIconAnimation();
     }, []);
+
+    // Check if the current verse is favorited when the index changes
+    useEffect(() => {
+        checkIfFavorited();
+        const unsubscribe = setupFavoriteListener();
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [currentIndex]);
+
+    const checkIfFavorited = async () => {
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) return;
+
+            const userDocRef = doc(db, 'users', currentUser.id);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const userFavorites = userData.favorites || [];
+                const currentVerse = verses[currentIndex];
+                
+            const isAlreadyFavorited = userFavorites.some((fav: any) => 
+                fav.id === currentVerse.id && fav.type === 'verse'
+            );
+
+                setIsFavorited(isAlreadyFavorited);
+            }
+        } catch (error) {
+            console.error('Error checking if favorited:', error);
+        }
+    };
+
+    // Set up a listener for favorite changes
+        const setupFavoriteListener = () => {
+        const currentUser = authService.getCurrentUser();
+        if (!currentUser) return;
+
+        const userDocRef = doc(db, 'users', currentUser.id);
+        const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const userData = docSnapshot.data();
+                const userFavorites = userData.favorites || [];
+                const currentVerse = verses[currentIndex];
+                
+                const isCurrentlyFavorited = userFavorites.some((fav: any) => 
+                    fav.id === currentVerse.id && fav.type === 'verse'
+                );
+                
+                setIsFavorited(isCurrentlyFavorited);
+            }
+        });
+
+        return unsubscribe;
+    };
 
     // Animate the custom icon
     const startIconAnimation = () => {
@@ -108,6 +171,65 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
         }
         return IconComponent;
     };
+
+    // Function to toggle favorite verse
+    const toggleFavorite = async () => {
+            const currentVerse = verses[currentIndex];
+            
+            try {
+                const currentUser = authService.getCurrentUser();
+                if (!currentUser) {
+                    Alert.alert('Login Required', 'Please log in to save favorites');
+                    return;
+                }
+
+                const userDocRef = doc(db, 'users', currentUser.id);
+                
+                if (isFavorited) {
+                    // For removal, find the exact object in Firestore
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        const userFavorites = userData.favorites || [];
+                        
+                        // Find the exact favorite object that exists in Firestore
+                        const existingFavorite = userFavorites.find((fav: any) => 
+                            fav.id === currentVerse.id && fav.type === 'verse'
+                        );
+                        
+                        if (existingFavorite) {
+                            // Remove using the exact object structure from Firestore
+                            await updateDoc(userDocRef, {
+                                favorites: arrayRemove(existingFavorite)
+                            });
+                            console.log('Successfully removed verse from favorites');
+                            Alert.alert('Removed from Favorites', `"${currentVerse.verse}" has been removed from your favorites! 💔`);
+                        }
+                    }
+                } else {
+                    // Add to favorites with current timestamp
+                    const favoriteItem = {
+                        id: currentVerse.id,
+                        type: 'verse' as const,
+                        title: `${currentVerse.theme} - ${currentVerse.verse}`,
+                        content: currentVerse.text,
+                        author: 'Bible',
+                        date: new Date().toISOString(),
+                        category: currentVerse.theme,
+                    };
+                    
+                    await updateDoc(userDocRef, {
+                        favorites: arrayUnion(favoriteItem)
+                    });
+                    console.log('Successfully added verse to favorites');
+                    Alert.alert('Added to Favorites', `"${currentVerse.verse}" has been saved to your favorites! ⭐`);
+                }
+                
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+                Alert.alert('Error', 'Failed to update favorite');
+            }
+        };
 
     // Navigation functions - next and previous verses
     const nextVerse = () => {
@@ -210,7 +332,7 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
             case 'New Life':
                 return ['#aed581', '#9ccc65', '#8bc34a'];
             default:
-                return ['#ff9a56', '#ff6b35', '#f7931e']; // Morning Amen brand colors
+                return ['#ff9a56', '#ff6b35', '#f7931e']; // Default gradient colors
         }
     };
 
@@ -267,9 +389,10 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                     <TouchableOpacity
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
+                        activeOpacity={0.8}
                     >
                         <LinearGradient
-                            colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
+                            colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
                             style={styles.backButtonGradient}
                         >
                             <BackIcon size={20} color="#FFFFFF" />
@@ -370,22 +493,33 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
 
                                     {/* Action Buttons */}
                                     <View style={styles.actionButtons}>
-                                        <TouchableOpacity
-                                            style={styles.actionButton}
-                                            onPress={toggleReflection}
+                                    <TouchableOpacity
+                                        style={styles.actionButton}
+                                        onPress={toggleFavorite}
+                                    >
+                                        <LinearGradient
+                                            colors={
+                                                isFavorited 
+                                                    ? ['#FFD700', '#FFA500', '#FF8C00'] 
+                                                    : ['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']
+                                            }
+                                            style={styles.actionButtonGradient}
                                         >
-                                            <LinearGradient
-                                                colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
-                                                style={styles.actionButtonGradient}
-                                            >
-                                                <View style={styles.actionButtonContent}>
-                                                    <Text style={styles.actionButtonText}>
-                                                        {showReflection ? 'Hide' : 'Reflect'}
-                                                    </Text>
-                                                    <PrayerIcon size={16} color="#FFFFFF" />
-                                                </View>
-                                            </LinearGradient>
-                                        </TouchableOpacity>
+                                            <View style={styles.actionButtonContent}>
+                                                <Text style={[
+                                                    styles.actionButtonText,
+                                                    isFavorited && { color: '#FFFFFF', fontWeight: 'bold' }
+                                                ]}>
+                                                    {isFavorited ? 'Favorited' : 'Favorite'}
+                                                </Text>
+                                                <StarIcon 
+                                                    size={16} 
+                                                    color={isFavorited ? "#FFD700" : "#FFFFFF"} 
+                                                    filled={isFavorited} 
+                                                />
+                                            </View>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
 
                                         <TouchableOpacity
                                             style={styles.actionButton}
@@ -402,6 +536,24 @@ export const VerseOfDayScreen: React.FC<VerseOfDayScreenProps> = ({ navigation }
                                             </LinearGradient>
                                         </TouchableOpacity>
                                     </View>
+
+                                    {/* Reflection Toggle Button */}
+                                    <TouchableOpacity
+                                        style={styles.reflectionButton}
+                                        onPress={toggleReflection}
+                                    >
+                                        <LinearGradient
+                                            colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
+                                            style={styles.actionButtonGradient}
+                                        >
+                                            <View style={styles.actionButtonContent}>
+                                                <Text style={styles.actionButtonText}>
+                                                    {showReflection ? 'Hide Reflection' : 'Show Reflection'}
+                                                </Text>
+                                                <PrayerIcon size={16} color="#FFFFFF" />
+                                            </View>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
 
                                     {/* Floating particles */}
                                     <View style={styles.cardParticles}>
@@ -805,4 +957,11 @@ const styles = StyleSheet.create({
         borderRadius: 3,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
+
+    reflectionButton: {
+    borderRadius: 20,
+    marginTop: 16,
+    alignSelf: 'center',
+    },
+
 });

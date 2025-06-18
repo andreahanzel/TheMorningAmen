@@ -28,6 +28,7 @@
     import { useAuth } from '../../../controllers/contexts/AuthContext';
     import { User } from '../../../models/services/AuthService';
     import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
+    import { StarIcon } from '../../components/icons/CustomIcons';
     import { 
     BackIcon, 
     EditIcon, 
@@ -431,24 +432,61 @@
                         </Text>
                     </View>
                     </View>
-
-                {/* COMMENTED OUT: Email Verification Status
-                    <View style={styles.detailRow}>
-                    <View style={styles.detailIcon}>
-                        <SpiritualIcons.Peace size={16} gradient />
-                    </View>
-                    <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Email Verified</Text>
-                        <Text style={[
-                        styles.detailValue,
-                        { color: user.isEmailVerified ? '#4caf50' : '#ff6b35' }
-                        ]}>
-                        {user.isEmailVerified ? 'Verified ✓' : 'Not Verified'}
-                        </Text>
-                    </View>
-                    </View>
-                    */}
                     
+                </LinearGradient>
+                </BlurView>
+            </Animated.View>
+
+            {/* Quick Actions Card - SEPARATE CARD */}
+            <Animated.View
+                style={[
+                styles.detailsCard,
+                {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                },
+                ]}
+            >
+                <BlurView intensity={20} style={styles.cardBlur}>
+                <LinearGradient
+                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                    style={styles.cardGradient}
+                >
+                    <Text style={styles.sectionTitle}>Quick Actions</Text>
+                    
+                    <TouchableOpacity
+                    style={styles.actionRow}
+                    onPress={() => navigation.navigate('Favorites')}
+                    activeOpacity={0.8}
+                    >
+                    <View style={styles.actionIcon}>
+                        <StarIcon size={20} color="#FFFFFF" filled />
+                    </View>
+                    <View style={styles.actionContent}>
+                        <Text style={styles.actionTitle}>My Favorites</Text>
+                        <Text style={styles.actionSubtitle}>View saved devotions, videos & verses</Text>
+                    </View>
+                    <View style={styles.actionArrow}>
+                        <Text style={styles.arrowText}>→</Text>
+                    </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                    style={styles.actionRow}
+                    onPress={() => Alert.alert('Coming Soon!', 'Settings will be available in future updates.')}
+                    activeOpacity={0.8}
+                    >
+                    <View style={styles.actionIcon}>
+                        <SpiritualIcons.Peace size={20} gradient />
+                    </View>
+                    <View style={styles.actionContent}>
+                        <Text style={styles.actionTitle}>Settings</Text>
+                        <Text style={styles.actionSubtitle}>Customize your experience</Text>
+                    </View>
+                    <View style={styles.actionArrow}>
+                        <Text style={styles.arrowText}>→</Text>
+                    </View>
+                    </TouchableOpacity>
                 </LinearGradient>
                 </BlurView>
             </Animated.View>
@@ -819,4 +857,54 @@
     bottomSpacing: {
         height: 40,
     },
+
+    actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+},
+
+actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+},
+
+actionContent: {
+    flex: 1,
+},
+
+actionTitle: {
+    fontSize: 16,
+    fontFamily: 'Outfit_600SemiBold',
+    color: '#FFFFFF',
+    marginBottom: 2,
+},
+
+actionSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
+    color: 'rgba(255, 255, 255, 0.8)',
+},
+
+actionArrow: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+arrowText: {
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '600',
+},
     });

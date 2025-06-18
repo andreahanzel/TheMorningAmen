@@ -31,6 +31,9 @@ import { BibleIcon, PrayerIcon, PlayIcon, NewsIcon, SunriseIcon, StarIcon, Searc
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 import { FirebaseService } from '../../../models/services/FirebaseService';
 import { testFirebaseConnection } from '../../../utils/firebaseTest';
+import { useAppContext } from '../../../controllers/contexts/AppContext';
+import { useNotifications } from '../../../controllers/hooks/useNotifications';
+import { PermissionRequestBanner } from '../../components/common/NotificationBanner';
 import { 
     initializeFirebaseData, 
     checkFirebaseCollections, 
@@ -67,6 +70,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
     const [featuredDevotion, setFeaturedDevotion] = useState<any>(null);
     const [todaysVerse, setTodaysVerse] = useState<any>(null);
     const [firebaseLoading, setFirebaseLoading] = useState(false);
+    const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+    const [notificationState, notificationActions] = useNotifications();
+    const { 
+    state: appState, 
+    requestNotificationPermissions,
+    sendTestNotification,
+    sendMilestoneNotification 
+    } = useAppContext();
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -132,6 +143,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
 
         return () => clearInterval(timeInterval);
     }, []);
+
+    useEffect(() => {
+  // Show notification banner if permissions not granted and user hasn't dismissed it
+        if (!notificationState.hasPermission && appState.ui.showNotificationPrompt) {
+            const timer = setTimeout(() => {
+            setShowNotificationBanner(true);
+            }, 3000); // Show after 3 seconds
+            
+            return () => clearTimeout(timer);
+        }
+        }, [notificationState.hasPermission, appState.ui.showNotificationPrompt]);
+
 
     // Function to test Firebase connection
     const handleTestFirebase = async () => {
@@ -378,18 +401,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                     }
                     break;
                 case 'Favorites':
-                    if (Platform.OS === 'web') {
-                        window.alert('Coming Soon! ⭐\n\nMy Favorites feature will be available in future updates.');
-                    } else {
-                        Alert.alert('Coming Soon! ⭐', 'My Favorites feature will be available in future updates.');
-                    }
+                    navigation.navigate('Favorites');
                     break;
                 case 'Settings':
-                    if (Platform.OS === 'web') {
-                        window.alert('Coming Soon! ⚙️\n\nSettings feature will be available in future updates.');
-                    } else {
-                        Alert.alert('Coming Soon! ⚙️', 'Settings feature will be available in future updates.');
-                    }
+                    navigation.navigate('SettingsScreen'); // Navigate to notification settings
                     break;
                 default:
                     console.log(`Navigation to ${screen} - Screen coming soon!`);
@@ -413,6 +428,34 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
             case 'cross': return <CrossIcon {...iconProps} />;
             default: return <BibleIcon {...iconProps} />;
         }
+    };
+
+    // Function to handle notification permission request
+    const handleRequestNotifications = async () => {
+        setShowNotificationBanner(false);
+        await requestNotificationPermissions();
+    };
+
+    const handleTestNotification = async () => {
+        try {
+            await sendTestNotification();
+            console.log('🧪 Test notification sent from HomeScreen');
+        } catch (error) {
+            console.error('Error sending test notification:', error);
+        }
+    };
+
+    const handleMilestoneTest = async () => {
+        try {
+            await sendMilestoneNotification('completed 7 days of devotional reading');
+            console.log('🎉 Milestone notification sent from HomeScreen');
+        } catch (error) {
+            console.error('Error sending milestone notification:', error);
+        }
+    };
+
+    const handleNotificationSettings = () => {
+        navigation.navigate('Settings'); // Navigate to your settings screen
     };
 
     // Enhanced Feature Card with responsive design
@@ -571,6 +614,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={colors.primary.coral} />
+
+            <PermissionRequestBanner
+                visible={showNotificationBanner}
+                onRequestPermission={handleRequestNotifications}
+                onDismiss={() => setShowNotificationBanner(false)}
+            />
             <LinearGradient
                 colors={[colors.primary.sunrise, colors.primary.coral, colors.primary.amber]}
                 style={styles.gradientContainer}
@@ -861,31 +910,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onLogout }) 
                             styles.quickActionsGrid,
                             isLargeScreen && styles.largeScreenQuickActions
                         ]}>
-                            <Pressable
+                           <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
-                                onPress={() => handleCardPress('PrayerWall')}
+                                onPress={handleTestNotification}
                             >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <PrayerIcon size={isLargeScreen ? 28 : 24} gradient={true} color="#FFFFFF" />
-                                    <Text style={styles.quickActionText}>Add Prayer</Text>
+                                    <Text style={styles.quickActionText}>🧪 Test Notification</Text>
                                 </BlurView>
                             </Pressable>
 
                             <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
-                                onPress={initializeFirebaseData}
-                                >
+                                onPress={handleMilestoneTest}
+                            >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <Text style={styles.quickActionText}>Init Data</Text>
+                                    <Text style={styles.quickActionText}>🎉 Test Milestone</Text>
                                 </BlurView>
                             </Pressable>
 
                             <Pressable
                                 style={[styles.quickActionButton, isLargeScreen && styles.largeQuickAction]}
-                                onPress={checkFirebaseCollections}
-                                >
+                                onPress={handleNotificationSettings}
+                            >
                                 <BlurView intensity={20} style={styles.quickActionGradient}>
-                                    <Text style={styles.quickActionText}>Check Data</Text>
+                                    <Text style={styles.quickActionText}>⚙️ Notifications</Text>
                                 </BlurView>
                             </Pressable>
 

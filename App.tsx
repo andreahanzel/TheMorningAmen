@@ -28,6 +28,8 @@ import { ForgotPasswordScreen } from './src/views/screens/auth/ForgotPasswordScr
 import { RootNavigator } from './src/controllers/navigation/RootNavigator';
 import { AuthProvider } from './src/controllers/contexts/AuthContext';
 import { PrayerProvider } from './src/controllers/contexts/PrayerContext';
+import { AppProvider } from './src/controllers/contexts/AppContext';
+
 
 
 
@@ -55,7 +57,7 @@ loadingContainer: {
 },
 
 loadingText: {
-    fontFamily: 'Outfit_300Light',
+    fontFamily: 'System',
     fontSize: 18,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -78,7 +80,7 @@ bottomContent: {
 },
 
 welcomeText: {
-    fontFamily: 'Outfit_300Light',
+    fontFamily: 'System',
     fontSize: 22,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -90,7 +92,7 @@ welcomeText: {
 },
 
 journeyText: {
-    fontFamily: 'Outfit_700Bold',
+    fontWeight: 'bold',
     fontSize: 28,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -102,7 +104,7 @@ journeyText: {
 },
 
 inspirationText: {
-    fontFamily: 'LibreBaskerville_400Regular_Italic',
+    fontStyle: 'italic',
     fontSize: 16,
     lineHeight: 24,
     color: '#fff8e1',
@@ -133,7 +135,7 @@ buttonGradient: {
 },
 
 buttonText: {
-    fontFamily: 'Outfit_600SemiBold',
+    fontWeight: '600',
     fontSize: 16,
     color: '#FFFFFF',
     letterSpacing: 0.5,
@@ -178,7 +180,7 @@ mainAppContainer: {
 },
 
 mainAppText: {
-    fontFamily: 'Outfit_700Bold',
+    fontWeight: 'bold',
     fontSize: 24,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -189,7 +191,7 @@ mainAppText: {
 },
 
 mainAppSubtext: {
-    fontFamily: 'Outfit_300Light',
+    fontFamily: 'System',
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
@@ -206,7 +208,7 @@ logoutButton: {
 },
 
 logoutButtonText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: 'System',
     fontSize: 14,
     color: '#FFFFFF',
 },
@@ -404,10 +406,10 @@ export default function App() {
     };
 
     const handleSuccessfulAuth = () => {
-    setIsAuthenticated(true);
-    setCurrentScreen('main');
-    console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
-};
+        setIsAuthenticated(true);
+        setCurrentScreen('main');
+        console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
+    };
 
     const handleSocialLogin = (provider: string) => {
         console.log(`🔐 ${provider} login initiated...`);
@@ -469,11 +471,13 @@ export default function App() {
         
         case 'main':
             return (
-                <AuthProvider>
-                    <PrayerProvider>
-                        <RootNavigator />
-                    </PrayerProvider>
-                </AuthProvider>
+                <AppProvider>
+                    <AuthProvider>
+                        <PrayerProvider>
+                            <RootNavigator />
+                        </PrayerProvider>
+                    </AuthProvider>
+                </AppProvider>
             );
         
         default: // 'welcome'

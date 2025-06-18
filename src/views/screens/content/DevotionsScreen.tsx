@@ -26,6 +26,11 @@ import { BlurView } from 'expo-blur';
 import { SearchIcon, StarIcon } from '../../components/icons/CustomIcons';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 import { FirebaseService } from '../../../models/services/FirebaseService';
+import { db } from '../../../../firebase.config';
+import { authService } from '../../../models/services/AuthService';
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
+import { Alert } from 'react-native';
+
 
 
 const { width, height } = Dimensions.get('window');
@@ -55,6 +60,7 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [userFavorites, setUserFavorites] = useState<string[]>([]);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -63,10 +69,15 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
     const iconRotateAnims = useRef<Animated.Value[]>([]).current;
 
     // Load devotions on mount and start animations
-    useEffect(() => {
-        loadDevotions();
-        startAnimations();
-    }, []);
+        useEffect(() => {
+            loadDevotions();
+            startAnimations();
+            const unsubscribe = setupFavoritesListener();
+            
+            return () => {
+                if (unsubscribe) unsubscribe();
+            };
+        }, []);
 
     useEffect(() => {
     // Reset category to 'All' when component mounts
@@ -108,6 +119,23 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                 setLoading(true);
                 setError(null);
                 console.log('Loading devotions from Firebase...');
+
+                // Load user favorites first
+                const currentUser = authService.getCurrentUser();
+                let favoriteIds: string[] = [];
+                if (currentUser) {
+                    try {
+                        const userDocRef = doc(db, 'users', currentUser.id);
+                        const userDoc = await getDoc(userDocRef);
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            favoriteIds = (userData.favorites || []).map((fav: any) => fav.id);
+                            setUserFavorites(favoriteIds);
+                        }
+                    } catch (error) {
+                        console.error('Error loading user favorites:', error);
+                    }
+                }
                 
                 const firebaseDevotions = await FirebaseService.getAllDevotions();
                 
@@ -149,7 +177,7 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
                         verseText: d.verseText ?? '',
                         author: d.author ?? '',
                         category: d.category ?? '', // Make sure this is not undefined
-                        isFavorite: d.isFavorite ?? false,
+                        isFavorite: favoriteIds.includes(d.id),
                     };
                 });
                 
@@ -173,16 +201,78 @@ export const DevotionsScreen: React.FC<DevotionsScreenProps> = ({ navigation }) 
             }
         };
 
+        // Set up listener for user favorites
+        const setupFavoritesListener = () => {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) return;
+
+            const userDocRef = doc(db, 'users', currentUser.id);
+            const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
+                    const favoriteIds = (userData.favorites || []).map((fav: any) => fav.id);
+                    setUserFavorites(favoriteIds);
+                    
+                    // Update devotions with new favorite status
+                    setDevotions(prev => 
+                        prev.map(devotion => ({
+                            ...devotion,
+                            isFavorite: favoriteIds.includes(devotion.id)
+                        }))
+                    );
+                }
+            });
+
+    return unsubscribe;
+}; 
+
 
     // Toggle favorite status
-    const toggleFavorite = (id: string) => {
-        setDevotions(prev =>
-            prev.map(devotion =>
-                devotion.id === id
-                    ? { ...devotion, isFavorite: !devotion.isFavorite }
-                    : devotion
-            )
-        );
+    const toggleFavorite = async (id: string) => {
+        const devotion = devotions.find(d => d.id === id);
+        if (!devotion) return;
+
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) {
+                Alert.alert('Login Required', 'Please log in to save favorites');
+                return;
+            }
+
+            const favoriteItem = {
+                id: devotion.id,
+                type: 'devotion' as const,
+                title: devotion.title,
+                content: devotion.content,
+                author: devotion.author,
+                date: devotion.date,
+                category: devotion.category,
+            };
+
+            const userDocRef = doc(db, 'users', currentUser.id);
+            
+            if (devotion.isFavorite) {
+                await updateDoc(userDocRef, {
+                    favorites: arrayRemove(favoriteItem)
+                });
+            } else {
+                await updateDoc(userDocRef, {
+                    favorites: arrayUnion(favoriteItem)
+                });
+            }
+
+            // Update local state
+            setDevotions(prev =>
+                prev.map(d =>
+                    d.id === id ? { ...d, isFavorite: !d.isFavorite } : d
+                )
+            );
+
+            console.log(`${devotion.isFavorite ? 'Removed from' : 'Added to'} favorites: ${devotion.title}`);
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            Alert.alert('Error', 'Failed to update favorite');
+        }
     };
 
     // Refresh control handler

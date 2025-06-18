@@ -103,6 +103,7 @@ const HomeStackNavigator = () => {
             <Stack.Screen name="HomeMain" component={HomeScreen} />
             <Stack.Screen name="VerseOfDay" component={VerseOfDayScreen} />
             <Stack.Screen name="About" component={AboutScreen} />
+            <Stack.Screen name="Favorites" component={FavoritesScreen} />
             {/* Add other screens that can be accessed from Home */}
         </Stack.Navigator>
     );

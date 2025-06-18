@@ -357,4 +357,14 @@
         return 0;
         }
     }
+
+    // ========== USER MANAGEMENT ==========
+        static async updateUserPushToken(userId: string, token: string): Promise<void> {
+        try {
+            // This is a placeholder - implement if needed
+            console.log('Update push token for user:', userId, token);
+        } catch (error) {
+            console.error('Error updating push token:', error);
+        }
+    }
 }

@@ -13,12 +13,13 @@
         "forceConsistentCasingInFileNames": true,
         "baseUrl": ".",
         "paths": {
-        "@/*": ["./src/*"]
+            "@/*": ["./src/*"]
         }
     },
     "include": [
         "**/*.ts",
-        "**/*.tsx"
+        "**/*.tsx",
+        "src/types/**/*"
     ],
     "exclude": [
         "node_modules"

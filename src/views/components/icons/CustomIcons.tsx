@@ -989,6 +989,61 @@ export const SendIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gr
         </Svg>
     );
 
+        // Bell Icon - Sacred Notification Bell
+    export const BellIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF', gradient = true }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path
+                d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                fill={gradient ? "#ffd700" : color}
+                opacity="0.9"
+            />
+            <Path d="M13.73 21a2 2 0 0 1-3.46 0" stroke={gradient ? "#ffd700" : color} strokeWidth="2" strokeLinecap="round" />
+        </Svg>
+    );
+
+    // Check Icon
+    export const CheckIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path d="M20 6L9 17l-5-5" stroke="#4caf50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </Svg>
+    );
+
+    // X Icon  
+    export const XIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path d="M18 6L6 18M6 6l12 12" stroke="#f44336" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+    );
+
+    // Settings Icon
+    export const SettingsIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Circle cx="12" cy="12" r="3" stroke="#9e9e9e" strokeWidth="2" fill="none" />
+        </Svg>
+    );
+
+    // Clock Icon
+    export const ClockIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Circle cx="12" cy="12" r="10" stroke="#2196f3" strokeWidth="2" fill="none" />
+            <Path d="M12 6v6l4 2" stroke="#2196f3" strokeWidth="2" strokeLinecap="round" />
+        </Svg>
+    );
+
+    // ChevronRight Icon
+    export const ChevronRightIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path d="M9 18l6-6-6-6" stroke="#9e9e9e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </Svg>
+    );
+
+    // TestTube Icon
+    export const TestTubeIcon: React.FC<IconProps> = ({ size = 24, color = '#FFFFFF' }) => (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Circle cx="12" cy="12" r="3" stroke="#9c27b0" strokeWidth="2" fill="none" />
+        </Svg>
+    );
+
 // Export all enhanced icons
 export default {
     PrayerIcon,
@@ -1007,4 +1062,10 @@ export default {
     ImageIcon,
     HeartIcon,
     SendIcon,
+    TestTubeIcon,
+    CheckIcon,
+    XIcon,
+    SettingsIcon,
+    ClockIcon,
+    ChevronRightIcon,
 };

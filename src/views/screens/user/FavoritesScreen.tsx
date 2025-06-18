@@ -21,6 +21,8 @@
     Platform,
     RefreshControl,
     Image,
+    Modal,
+    Share,
     } from 'react-native';
     import { LinearGradient } from 'expo-linear-gradient';
     import { BlurView } from 'expo-blur';
@@ -42,7 +44,7 @@
     ShareIcon,
     PlayIcon,
     BookIcon,
-    DeleteIcon
+    StarIcon
     } from '../../components/icons/CustomIcons';
 
     const { width, height } = Dimensions.get('window');
@@ -68,6 +70,8 @@
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [favoriteToDelete, setFavoriteToDelete] = useState<{id: string, title: string} | null>(null);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -80,11 +84,30 @@
         { key: 'video', name: 'Videos', icon: SpiritualIcons.Joy },
         { key: 'verse', name: 'Verses', icon: SpiritualIcons.Purpose },
         { key: 'prayer', name: 'Prayers', icon: SpiritualIcons.Rest },
+        // Add theme-based categories for verses
+        { key: 'Joy', name: 'Joy', icon: SpiritualIcons.Joy },
+        { key: 'Peace', name: 'Peace', icon: SpiritualIcons.Peace },
+        { key: 'Love', name: 'Love', icon: SpiritualIcons.Love },
+        { key: 'Hope', name: 'Hope', icon: SpiritualIcons.Hope },
+        { key: 'Purpose', name: 'Purpose', icon: SpiritualIcons.Purpose },
     ];
 
     useEffect(() => {
-        loadFavorites();
+        let unsubscribe: (() => void) | undefined;
+        
+        const setupListener = async () => {
+            unsubscribe = await loadFavorites();
+        };
+        
+        setupListener();
         startAnimations();
+        
+        // Cleanup function
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -130,100 +153,154 @@
 
     const loadFavorites = async () => {
         try {
-        const currentUser = authService.getCurrentUser();
-        if (!currentUser) return;
-
-        // Listen to user document for real-time favorites updates
-        const userDocRef = doc(db, 'users', currentUser.id);
-        const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-            if (docSnapshot.exists()) {
-            const userData = docSnapshot.data();
-            const userFavorites = userData.favorites || [];
-            setFavorites(userFavorites);
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) {
+                setLoading(false);
+                return;
             }
-            setLoading(false);
-        });
 
-        // Return cleanup function
-        return unsubscribe;
+            // Listen to user document for real-time favorites updates
+            const userDocRef = doc(db, 'users', currentUser.id);
+            const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
+                    const userFavorites = userData.favorites || [];
+                    setFavorites(userFavorites);
+                }
+                setLoading(false);
+            });
+
+            // Store the unsubscribe function for cleanup
+            return unsubscribe;
         } catch (error) {
-        console.error('Error loading favorites:', error);
-        setLoading(false);
+            console.error('Error loading favorites:', error);
+            setLoading(false);
         }
     };
 
+    // Refresh favorites
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        loadFavorites().finally(() => setRefreshing(false));
+        // Just set refreshing to false since we have real-time listener
+        setTimeout(() => setRefreshing(false), 1000);
     }, []);
 
+    // Filter favorites based on selected category
     const getFilteredFavorites = () => {
         if (selectedCategory === 'all') {
-        return favorites;
+            return favorites;
         }
-        return favorites.filter(item => item.type === selectedCategory);
-    };
-
-    const removeFavorite = async (favoriteId: string) => {
-        try {
-        const currentUser = authService.getCurrentUser();
-        if (!currentUser) return;
-
-        const favoriteToRemove = favorites.find(fav => fav.id === favoriteId);
-        if (!favoriteToRemove) return;
-
-        // Remove from Firestore
-        const userDocRef = doc(db, 'users', currentUser.id);
-        await updateDoc(userDocRef, {
-            favorites: arrayRemove(favoriteToRemove)
-        });
-
-        Alert.alert('Removed', 'Favorite removed successfully! 💔');
-        } catch (error) {
-        console.error('Error removing favorite:', error);
-        Alert.alert('Error', 'Failed to remove favorite');
+        
+        // Filter by type (devotion, video, verse, prayer)
+        if (['devotion', 'video', 'verse', 'prayer'].includes(selectedCategory)) {
+            return favorites.filter(item => item.type === selectedCategory);
         }
-    };
-
-    const confirmRemoveFavorite = (favoriteId: string, title: string) => {
-        Alert.alert(
-        'Remove Favorite',
-        `Remove "${title}" from your favorites?`,
-        [
-            { text: 'Cancel', style: 'cancel' },
-            {
-            text: 'Remove',
-            style: 'destructive',
-            onPress: () => removeFavorite(favoriteId),
-            },
-        ]
+        
+        // Filter by verse theme (Joy, Peace, Love, etc.)
+        return favorites.filter(item => 
+            item.type === 'verse' && item.category === selectedCategory
         );
     };
 
-    const shareFavorite = async (favorite: FavoriteItem) => {
-        // Implement sharing functionality
-        Alert.alert('Share', `Sharing "${favorite.title}" - Feature coming soon! 📱`);
+    // Remove favorite from Firestore
+    const removeFavorite = async (favoriteId: string) => {
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) return;
+
+            // Get the current user document to find the exact favorite object
+            const userDocRef = doc(db, 'users', currentUser.id);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (!userDoc.exists()) return;
+            
+            const userData = userDoc.data();
+            const userFavorites = userData.favorites || [];
+            
+            // Find the exact favorite object as it exists in Firestore
+            const favoriteToRemove = userFavorites.find((fav: any) => 
+                fav.id === favoriteId
+            );
+            
+            if (!favoriteToRemove) {
+                console.log('Favorite not found:', favoriteId);
+                return;
+            }
+
+            console.log('Removing favorite:', favoriteToRemove);
+
+            // Remove using the exact object from Firestore
+            await updateDoc(userDocRef, {
+                favorites: arrayRemove(favoriteToRemove)
+            });
+
+            console.log('Successfully removed favorite');
+            Alert.alert('Removed', 'Favorite removed successfully! ⭐');
+        } catch (error) {
+            console.error('Error removing favorite:', error);
+            Alert.alert('Error', 'Failed to remove favorite. Please try again.');
+        }
     };
 
+    
+    // Confirm before removing favorite
+    const confirmRemoveFavorite = (favoriteId: string, title: string) => {
+        setFavoriteToDelete({ id: favoriteId, title });
+        setShowDeleteConfirm(true);
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setFavoriteToDelete(null);
+    };
+
+    const confirmDelete = async () => {
+        if (favoriteToDelete) {
+            try {
+                await removeFavorite(favoriteToDelete.id);
+            } catch (error) {
+                console.error('Error removing favorite:', error);
+            } finally {
+                setShowDeleteConfirm(false);
+                setFavoriteToDelete(null);
+            }
+        }
+    };
+
+    // Share favorite item
+    const shareFavorite = async (favorite: FavoriteItem) => {
+        try {
+            await Share.share({
+                message: `${favorite.content}\n\nFrom The Morning Amen app 🙏`,
+                title: favorite.title,
+            });
+        } catch (error) {
+            console.error('Error sharing favorite:', error);
+            Alert.alert('Error', 'Failed to share content');
+        }
+};
+
+    // Open favorite item in its dedicated screen
     const openFavorite = (favorite: FavoriteItem) => {
         switch (favorite.type) {
         case 'devotion':
-            navigation.navigate('DevotionDetail', { devotion: favorite });
+            navigation.navigate('DevotionsStack', { screen: 'DevotionDetail', params: { devotion: favorite } });
             break;
         case 'video':
-            navigation.navigate('VideoGallery', { selectedVideo: favorite });
+            navigation.navigate('VideosStack', { screen: 'VideoGallery', params: { selectedVideo: favorite } });
             break;
         case 'verse':
-            navigation.navigate('VerseOfDay', { selectedVerse: favorite });
+            navigation.navigate('HomeStack', { screen: 'VerseOfDay', params: { selectedVerse: favorite } });
             break;
         case 'prayer':
-            navigation.navigate('PrayerWall', { selectedPrayer: favorite });
+            navigation.navigate('PrayerStack', { screen: 'PrayerWall', params: { selectedPrayer: favorite } });
             break;
         default:
             Alert.alert('Info', 'Content will open in its dedicated screen');
         }
     };
 
+    // Get icon based on favorite type
     const getTypeIcon = (type: string) => {
         const iconProps = { size: 16, gradient: true };
         switch (type) {
@@ -235,6 +312,7 @@
         }
     };
 
+    //  Get colors based on favorite type
     const getTypeColors = (type: string): [string, string, string] => {
         switch (type) {
         case 'devotion':
@@ -250,6 +328,7 @@
         }
     };
 
+    // Format date to "MMM DD"
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
         month: 'short',
@@ -308,18 +387,12 @@
                     </View>
                     </View>
                     
-                    <View style={styles.cardActions}>
+               <View style={styles.cardActions}>
                     <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => shareFavorite(favorite)}
                     >
                         <ShareIcon size={14} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => confirmRemoveFavorite(favorite.id, favorite.title)}
-                    >
-                        <DeleteIcon size={14} color="#FFFFFF" />
                     </TouchableOpacity>
                     </View>
                 </View>
@@ -360,9 +433,12 @@
                     {formatDate(favorite.date)}
                     </Text>
                     
-                    <View style={styles.heartContainer}>
-                    <HeartIcon size={16} color="#FFFFFF" filled />
-                    </View>
+                    <TouchableOpacity
+                    style={styles.starContainer}
+                    onPress={() => confirmRemoveFavorite(favorite.id, favorite.title)}
+                    >
+                        <StarIcon size={16} color="#FFD700" filled />
+                    </TouchableOpacity>
                 </View>
 
                 {/* Floating particles */}
@@ -411,7 +487,12 @@
                 onPress={() => navigation.goBack()}
                 activeOpacity={0.8}
             >
-                <BackIcon size={20} color="#FFFFFF" />
+                <LinearGradient
+                    colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
+                    style={styles.backButtonGradient}
+                >
+                    <BackIcon size={20} color="#FFFFFF" />
+                </LinearGradient>
             </TouchableOpacity>
             
             <View style={styles.headerCenter}>
@@ -528,7 +609,7 @@
                 </Text>
                 <TouchableOpacity
                     style={styles.exploreButton}
-                    onPress={() => navigation.navigate('Home')}
+                    onPress={() => navigation.navigate('HomeStack')}
                     activeOpacity={0.8}
                 >
                     <LinearGradient
@@ -542,7 +623,7 @@
                 </Animated.View>
             ) : (
                 filteredFavorites.map((favorite, index) => (
-                <FavoriteCard key={favorite.id} favorite={favorite} index={index} />
+                    <FavoriteCard key={`${favorite.type}-${favorite.id}-${index}`} favorite={favorite} index={index} />
                 ))
             )}
             
@@ -564,6 +645,32 @@
                 />
             ))}
             </View>
+
+            {/* Delete Confirmation Modal */}
+                <Modal
+                    visible={showDeleteConfirm}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={cancelDelete}
+                >
+                    <View style={styles.deleteModalOverlay}>
+                        <View style={styles.deleteModalContent}>
+                            <Text style={styles.deleteModalTitle}>Remove from Favorites</Text>
+                            <Text style={styles.deleteModalText}>
+                                Are you sure you want to remove "{favoriteToDelete?.title}" from your favorites?
+                            </Text>
+                            <View style={styles.deleteModalButtons}>
+                                <TouchableOpacity style={styles.cancelButton} onPress={cancelDelete}>
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.deleteButton} onPress={confirmDelete}>
+                                    <Text style={styles.deleteButtonText}>Remove</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
         </LinearGradient>
         </>
     );
@@ -870,7 +977,7 @@
         color: 'rgba(255, 255, 255, 0.8)',
     },
 
-    heartContainer: {
+    starContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 12,
         padding: 6,
@@ -915,4 +1022,94 @@
     bottomSpacing: {
         height: 100,
     },
-    });
+
+    backButtonGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+},
+
+    footerActions: {
+        flexDirection: 'row',
+        gap: 8,
+        alignItems: 'center',
+    },
+
+    deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+deleteModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+},
+
+deleteModalTitle: {
+    fontSize: 18,
+    fontFamily: 'Outfit_700Bold',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+},
+
+deleteModalText: {
+    fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: '#666',
+    marginBottom: 24,
+    lineHeight: 22,
+    textAlign: 'center',
+},
+
+deleteModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+},
+
+cancelButton: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+},
+
+cancelButtonText: {
+    textAlign: 'center',
+    color: '#333',
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 16,
+},
+
+deleteButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+},
+
+deleteButtonText: {
+    textAlign: 'center',
+    color: 'white',
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 16,
+},
+
+});

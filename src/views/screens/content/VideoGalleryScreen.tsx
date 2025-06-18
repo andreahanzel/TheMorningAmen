@@ -32,6 +32,9 @@ import { SearchIcon, StarIcon, PlayIcon } from '../../components/icons/CustomIco
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 import { WebView } from 'react-native-webview';
 import { Modal } from 'react-native';
+import { db } from '../../../../firebase.config';
+import { authService } from '../../../models/services/AuthService';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 
 // Import video data
@@ -111,14 +114,52 @@ export const VideoGalleryScreen: React.FC<VideoGalleryScreenProps> = ({ navigati
     };
 
     // Toggle favorite status
-    const toggleFavorite = (id: string) => {
-        setVideos(prev =>
-            prev.map(video =>
-                video.id === id
-                    ? { ...video, isFavorite: !video.isFavorite }
-                    : video
-            )
-        );
+    const toggleFavorite = async (id: string) => {
+        const video = videos.find(v => v.id === id);
+        if (!video) return;
+
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) {
+                Alert.alert('Login Required', 'Please log in to save favorites');
+                return;
+            }
+
+            const favoriteItem = {
+                id: video.id,
+                type: 'video' as const,
+                title: video.title,
+                content: video.description,
+                videoUri: video.videoUrl,
+                author: video.author,
+                date: video.date,
+                category: video.category,
+            };
+
+            const userDocRef = doc(db, 'users', currentUser.id);
+            
+            if (video.isFavorite) {
+                await updateDoc(userDocRef, {
+                    favorites: arrayRemove(favoriteItem)
+                });
+            } else {
+                await updateDoc(userDocRef, {
+                    favorites: arrayUnion(favoriteItem)
+                });
+            }
+
+            // Update local state
+            setVideos(prev =>
+                prev.map(v =>
+                    v.id === id ? { ...v, isFavorite: !v.isFavorite } : v
+                )
+            );
+
+            console.log(`${video.isFavorite ? 'Removed from' : 'Added to'} favorites: ${video.title}`);
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            Alert.alert('Error', 'Failed to update favorite');
+        }
     };
 
     // Function to convert YouTube URL to embed format

@@ -96,8 +96,35 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
     const [isCommentAnonymous, setIsCommentAnonymous] = useState(true);
     const [commentAuthorName, setCommentAuthorName] = useState('');
     const [refreshing, setRefreshing] = useState(false);
-    const { user: authUser } = useAuth(); // Import useAuth hook
-    const [userId] = useState(() => authUser?.id || 'demo_user_' + Date.now().toString());
+    const { user: authUser } = useAuth();
+    const [userId, setUserId] = useState<string>('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [prayerToDelete, setPrayerToDelete] = useState<string>('');
+
+    useEffect(() => {
+        const initializeUserId = async () => {
+            if (authUser?.id) {
+                setUserId(authUser.id);
+                console.log('Using auth user ID:', authUser.id);
+            } else {
+                // Try to get existing demo user ID from AsyncStorage
+                try {
+                    let demoUserId = await AsyncStorage.getItem('demo_user_id');
+                    if (!demoUserId) {
+                        demoUserId = 'demo_user_12345'; // Fixed demo ID
+                        await AsyncStorage.setItem('demo_user_id', demoUserId);
+                    }
+                    setUserId(demoUserId);
+                    console.log('Using demo user ID:', demoUserId);
+                } catch (error) {
+                    console.error('Error with AsyncStorage:', error);
+                    setUserId('demo_user_12345');
+                }
+            }
+        };
+        
+        initializeUserId();
+    }, [authUser]);
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -117,6 +144,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
     useEffect(() => {
         console.log('Modal state changed:', { showAddForm });
     }, [showAddForm]);
+
 
 
     const requestPermissions = async () => {
@@ -319,6 +347,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
 
     // Wrapper to include canPrayToday check
     const editPrayer = (prayer: Prayer) => {
+        console.log('Edit check - prayer.authorId:', prayer.authorId, 'userId:', userId);
         if (prayer.authorId !== userId) {
             Alert.alert('Cannot Edit', 'You can only edit prayers you created.');
             return;
@@ -334,27 +363,31 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
     };
 
     // Function to handle deleting a prayer
-    const handleDeletePrayer = async (prayerId: string) => {
-        Alert.alert(
-            'Delete Prayer',
-            'Are you sure you want to delete this prayer?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await deletePrayer(prayerId);
-                            Alert.alert('Success', 'Prayer deleted successfully');
-                        } catch (error: any) {
-                            Alert.alert('Error', error.message || 'Failed to delete prayer');
-                        }
-                    },
-                },
-            ]
-        );
-    };
+    const handleDeletePrayer = (prayerId: string) => {
+            console.log('🔥 DELETE BUTTON PRESSED - Prayer ID:', prayerId);
+            setPrayerToDelete(prayerId);
+            setShowDeleteConfirm(true);
+        };
+
+        const confirmDelete = async () => {
+            try {
+                console.log('🔥 CALLING deletePrayer...');
+                await deletePrayer(prayerToDelete);
+                console.log('🔥 DELETE COMPLETED SUCCESSFULLY');
+                Alert.alert('Success', 'Prayer deleted successfully');
+            } catch (error: any) {
+                console.error('🔥 DELETE FAILED:', error);
+                Alert.alert('Error', error.message || 'Failed to delete prayer');
+            } finally {
+                setShowDeleteConfirm(false);
+                setPrayerToDelete('');
+            }
+        };
+
+        const cancelDelete = () => {
+            setShowDeleteConfirm(false);
+            setPrayerToDelete('');
+        };
 
     // Show comments modal
     const showComments = (prayerId: string) => {
@@ -729,34 +762,31 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                     <View style={styles.bottomSpacing} />
                 </ScrollView>
 
-                {/* Prayer Modal */}
-                <Modal
-                    visible={showAddForm}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={hideAddPrayerForm}
-                    statusBarTranslucent={true}
-                    presentationStyle="overFullScreen"
-                >
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.modalContainer}
-                    >
-                    <TouchableOpacity
-                            style={styles.modalOverlay}
-                            activeOpacity={1}
-                            onPress={hideAddPrayerForm}
-                        />
-                        
-                                <View style={styles.modalContent}>
-                                    <BlurView intensity={40} style={styles.modalBlur}>
-                                        {/* all your modal content */}
-                                    </BlurView>
-                                </View>
-                                <LinearGradient
-                                    colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
-                                    style={styles.modalGradient}
+                            {/* Prayer Modal */}
+                            <Modal
+                                visible={showAddForm}
+                                transparent={true}
+                                animationType="slide"
+                                onRequestClose={hideAddPrayerForm}
+                                statusBarTranslucent={true}
+                                presentationStyle="overFullScreen"
+                            >
+                                <KeyboardAvoidingView
+                                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                                    style={styles.modalContainer}
                                 >
+                                    <TouchableOpacity
+                                        style={styles.modalOverlay}
+                                        activeOpacity={1}
+                                        onPress={hideAddPrayerForm}
+                                    />
+                                    
+                                    <View style={styles.modalContent}>
+                                        <BlurView intensity={40} style={styles.modalBlur}>
+                                            <LinearGradient
+                                                colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
+                                                style={styles.modalGradient}
+                                            >
                                     {/* Modal Header */}
                                     <View style={styles.modalHeader}>
                                         <View style={styles.modalHeaderLeft}>
@@ -920,9 +950,10 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                                         </TouchableOpacity>
                                     </ScrollView>
                                 </LinearGradient>
+                            </BlurView>
+                        </View>
                     </KeyboardAvoidingView>
                 </Modal>
-
                 {/* Comments Modal */}
                 <Modal
                     visible={showCommentsModal}
@@ -1096,6 +1127,31 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                             </BlurView>
                         </Animated.View>
                     </KeyboardAvoidingView>
+                </Modal>
+
+                {/* Delete Confirmation Modal */}
+                <Modal
+                    visible={showDeleteConfirm}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={cancelDelete}
+                >
+                    <View style={styles.deleteModalOverlay}>
+                        <View style={styles.deleteModalContent}>
+                            <Text style={styles.deleteModalTitle}>Delete Prayer</Text>
+                            <Text style={styles.deleteModalText}>
+                                Are you sure you want to delete this prayer? This action cannot be undone.
+                            </Text>
+                            <View style={styles.deleteModalButtons}>
+                                <TouchableOpacity style={styles.cancelButton} onPress={cancelDelete}>
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.deleteButton} onPress={confirmDelete}>
+                                    <Text style={styles.deleteButtonText}>Delete</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
                 </Modal>
 
                 {/* Background particles */}
@@ -1879,4 +1935,61 @@ const styles = StyleSheet.create({
     bottomSpacing: {
         height: 100,
     },
+
+    deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+deleteModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    maxWidth: 320,
+},
+deleteModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+},
+deleteModalText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 24,
+    lineHeight: 22,
+},
+deleteModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+},
+cancelButton: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 8,
+},
+cancelButtonText: {
+    textAlign: 'center',
+    color: '#333',
+    fontWeight: '600',
+},
+deleteButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 8,
+},
+deleteButtonText: {
+    textAlign: 'center',
+    color: 'white',
+    fontWeight: '600',
+},
+
 });

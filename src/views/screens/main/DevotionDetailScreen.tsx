@@ -19,13 +19,15 @@ import {
     StatusBar,
     Platform,
     Share,
+    Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { BackIcon, ShareIcon, StarIcon } from '../../components/icons/CustomIcons';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
-
-
+import { db } from '../../../../firebase.config';
+import { authService } from '../../../models/services/AuthService';
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,7 +40,7 @@ interface DevotionDetailScreenProps {
 // Main component for the Devotion Detail Screen
 export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ route, navigation }) => {
     const { devotion } = route.params;
-    const [isFavorite, setIsFavorite] = useState(devotion.isFavorite);
+    const [isFavorite, setIsFavorite] = useState(false);
     const [readingProgress, setReadingProgress] = useState(0);
 
     // Animation values
@@ -51,6 +53,29 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
     useEffect(() => {
         startAnimations();
     }, []);
+
+        useEffect(() => {
+        checkFavoriteStatus();
+    }, []);
+
+    const checkFavoriteStatus = async () => {
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) return;
+
+            const userDocRef = doc(db, 'users', currentUser.id);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const favorites = userData.favorites || [];
+                const isCurrentlyFavorited = favorites.some((fav: any) => fav.id === devotion.id);
+                setIsFavorite(isCurrentlyFavorited);
+            }
+        } catch (error) {
+            console.error('Error checking favorite status:', error);
+        }
+};
 
         const startAnimations = () => {
         Animated.parallel([
@@ -104,11 +129,43 @@ export const DevotionDetailScreen: React.FC<DevotionDetailScreenProps> = ({ rout
     };
 
     // Toggle favorite status
-    const toggleFavorite = () => {
-        setIsFavorite(!isFavorite);
-        // TODO: In Module 3, we'll save favorites to Firebase
-        console.log(`Toggled favorite for: ${devotion.title}`);
-    };
+        const toggleFavorite = async () => {
+            try {
+                const currentUser = authService.getCurrentUser();
+                if (!currentUser) {
+                    Alert.alert('Login Required', 'Please log in to save favorites');
+                    return;
+                }
+
+                const favoriteItem = {
+                    id: devotion.id,
+                    type: 'devotion' as const,
+                    title: devotion.title,
+                    content: devotion.content,
+                    author: devotion.author,
+                    date: devotion.date,
+                    category: devotion.category,
+                };
+
+                const userDocRef = doc(db, 'users', currentUser.id);
+                
+                if (isFavorite) {
+                    await updateDoc(userDocRef, {
+                        favorites: arrayRemove(favoriteItem)
+                    });
+                } else {
+                    await updateDoc(userDocRef, {
+                        favorites: arrayUnion(favoriteItem)
+                    });
+                }
+
+                setIsFavorite(!isFavorite);
+                console.log(`${isFavorite ? 'Removed from' : 'Added to'} favorites: ${devotion.title}`);
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+                Alert.alert('Error', 'Failed to update favorite');
+            }
+        };
 
     // Share the devotion
     const handleShare = async () => {

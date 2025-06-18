@@ -31,20 +31,25 @@ import {
     } from '@expo-google-fonts/libre-baskerville';
 
     export const useAppFonts = () => {
-    const [fontsLoaded] = useFonts({
-        Outfit_300Light,
-        Outfit_400Regular,
-        Outfit_600SemiBold,
-        Outfit_700Bold,
-        Outfit_900Black,
-        NunitoSans_300Light,
-        NunitoSans_400Regular,
-        NunitoSans_600SemiBold,
-        NunitoSans_700Bold,
-        LibreBaskerville_400Regular,
-        LibreBaskerville_400Regular_Italic,
-        LibreBaskerville_700Bold,
+    const [fontsLoaded, fontError] = useFonts({
+        // Temporarily disable Google Fonts for iOS debugging
+        // Outfit_300Light,
+        // Outfit_400Regular,
+        // Outfit_600SemiBold,
+        // Outfit_700Bold,
+        // Outfit_900Black,
+        // NunitoSans_300Light,
+        // NunitoSans_400Regular,
+        // NunitoSans_600SemiBold,
+        // NunitoSans_700Bold,
+        // LibreBaskerville_400Regular,
+        // LibreBaskerville_400Regular_Italic,
+        // LibreBaskerville_700Bold,
     });
 
-    return { fontsLoaded };
+    // Force fonts to be loaded for iOS debugging
+    return { 
+        fontsLoaded: true,
+        fontError 
+    };
 };
