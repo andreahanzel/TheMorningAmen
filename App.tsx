@@ -28,7 +28,6 @@ import { ForgotPasswordScreen } from './src/views/screens/auth/ForgotPasswordScr
 import { RootNavigator } from './src/controllers/navigation/RootNavigator';
 import { AuthProvider } from './src/controllers/contexts/AuthContext';
 import { PrayerProvider } from './src/controllers/contexts/PrayerContext';
-import { FirebaseTest } from './src/views/components/FirebaseTest';
 
 
 
@@ -564,8 +563,6 @@ export default function App() {
                         <Text style={styles.buttonText}>Begin Your Journey</Text>
                         </LinearGradient>
                     </TouchableOpacity>
-
-                {__DEV__ && <FirebaseTest />}   
                 
                     </Animated.View>
                 )}

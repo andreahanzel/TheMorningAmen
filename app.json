@@ -16,14 +16,16 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.andreatorkei.themorningamen"
+      "bundleIdentifier": "com.andreatorkei.themorningamen",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ff9a56"
       },
-      "package": "com.andreatorkei.themorningamen"
+      "package": "com.andreatorkei.themorningamen",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,7 +39,14 @@
           }
         }
       ],
-      "expo-dev-client"
+      "expo-dev-client",
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/auth",
+        {
+          "authDomain": "themorningamen-4d513.firebaseapp.com"
+        }
+      ]
     ]
   }
 }
