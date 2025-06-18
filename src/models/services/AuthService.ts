@@ -9,6 +9,9 @@
 // This file is responsible for managing user authentication, including login, signup, and social sign-in methods.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db, getAuthInstance } from '../../../firebase.config';
+import { Auth } from 'firebase/auth';
+import { Platform } from 'react-native';
 import { 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -26,7 +29,6 @@ import {
   updateDoc 
 } from 'firebase/firestore';
 
-import { auth, db } from '../../../firebase.config';
 // Types for authentication
 export interface User {
   id: string; // Added missing ID field
@@ -69,33 +71,81 @@ const STORAGE_KEYS = {
 class AuthService {
   private currentUser: User | null = null;
   private authToken: string | null = null;
+  private isInitialized: boolean = false; 
 
-  // Check if Firebase is properly initialized
-  private checkFirebaseAuth(): boolean {
-    try {
-      if (!auth) {
-        console.error('Firebase Auth is not initialized');
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error('Firebase Auth check failed:', error);
-      return false;
-    }
+  constructor() {
+    // Don't initialize immediately - wait for first use
+    console.log('AuthService instance created');
   }
 
-  // Initialize auth service
+
+  // Check if Firebase is properly initialized
+    private checkFirebaseAuth(): boolean {
+      try {
+        const authInstance = getAuthInstance();
+        if (!authInstance) {
+          console.error('Firebase Auth is not initialized');
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('Firebase Auth check failed:', error);
+        return false;
+      }
+    }
+
+// In the initialize method, add at the very end:
   async initialize(): Promise<void> {
     try {
+      // Simple check - auth should already be initialized in firebase.config.ts
+      const authInstance = getAuthInstance();
+      if (!authInstance) {
+        throw new Error('Firebase Auth not available');
+      }
+      
+      // Listen to Firebase auth state changes
+      onAuthStateChanged(getAuthInstance(), async (firebaseUser) => {
+        try {
+          if (firebaseUser) {
+            // User is signed in
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            let user: User;
+            
+            if (userDoc.exists()) {
+              user = { id: firebaseUser.uid, ...userDoc.data() } as User;
+            } else {
+              user = this.mapFirebaseUserToUser(firebaseUser);
+            }
+            
+            const token = await firebaseUser.getIdToken();
+            await this.saveUserSession(user, token);
+          } else {
+            // User is signed out
+            this.currentUser = null;
+            this.authToken = null;
+            await AsyncStorage.multiRemove([STORAGE_KEYS.USER, STORAGE_KEYS.TOKEN]);
+          }
+        } catch (error) {
+          console.error('Auth state change error:', error);
+        }
+      });
+      
+      // Fallback to AsyncStorage for compatibility
       const savedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
       const savedToken = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
       
-      if (savedUser && savedToken) {
+      if (savedUser && savedToken && !this.currentUser) {
         this.currentUser = JSON.parse(savedUser);
         this.authToken = savedToken;
       }
+      
+
+      this.isInitialized = true;
+      console.log('AuthService initialized successfully');
+      
     } catch (error) {
       console.error('Auth initialization error:', error);
+      // Keep isInitialized as false on error
     }
   }
 
@@ -111,18 +161,29 @@ class AuthService {
 
   // Email/Password Login
   async loginWithEmail(credentials: LoginCredentials): Promise<AuthResponse> {
-      try {
+        try {
+          // Wait for initialization if not ready
+          if (!this.isInitialized) {
+            await this.initialize();
+          }
+        
+        // Double check auth is available
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         if (!this.checkFirebaseAuth()) {
           return {
             success: false,
             error: 'Authentication service is not available'
           };
         }
-        const userCredential = await signInWithEmailAndPassword(
-          auth, 
-          credentials.email, 
-          credentials.password
-        );
+    
+
+
+    const userCredential = await signInWithEmailAndPassword(
+        getAuthInstance(), 
+        credentials.email, 
+        credentials.password
+      );
         
         // Get user data from Firestore
         const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
@@ -161,7 +222,7 @@ class AuthService {
           };
         }
         const userCredential = await createUserWithEmailAndPassword(
-          auth,
+          getAuthInstance(),
           credentials.email,
           credentials.password
         );
@@ -342,12 +403,15 @@ class AuthService {
 
     // Logout
     async logout(): Promise<void> {
-      try {
-        // Clear local storage
-        await AsyncStorage.multiRemove([
-          STORAGE_KEYS.USER,
-          STORAGE_KEYS.TOKEN,
-        ]);
+  try {
+    // Sign out from Firebase
+    await signOut(getAuthInstance());
+    
+    // Clear local storage
+    await AsyncStorage.multiRemove([
+      STORAGE_KEYS.USER,
+      STORAGE_KEYS.TOKEN,
+    ]);
 
         // Clear instance variables
         this.currentUser = null;
@@ -366,10 +430,14 @@ class AuthService {
     // Reset Password
     async resetPassword(email: string): Promise<AuthResponse> {
       try {
-        await this.simulateNetworkDelay();
+        if (!this.checkFirebaseAuth()) {
+          return {
+            success: false,
+            error: 'Authentication service is not available'
+          };
+        }
 
-        // In a real app, you would send a reset email
-        // For demo purposes, we'll just return success
+        await sendPasswordResetEmail(getAuthInstance(), email);
 
         return {
           success: true,
@@ -501,7 +569,7 @@ class AuthService {
     // Refresh token (for production apps)
     async refreshToken(): Promise<boolean> {
         try {
-          const currentUser = auth.currentUser;
+          const currentUser = getAuthInstance().currentUser;
           if (currentUser) {
             await currentUser.getIdToken(true);
             return true;

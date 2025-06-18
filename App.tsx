@@ -31,6 +31,7 @@ import { PrayerProvider } from './src/controllers/contexts/PrayerContext';
 import { FirebaseTest } from './src/views/components/FirebaseTest';
 
 
+
 const { width, height } = Dimensions.get('window');
 
 // Keep the splash screen visible while we fetch resources
@@ -404,10 +405,10 @@ export default function App() {
     };
 
     const handleSuccessfulAuth = () => {
-        setIsAuthenticated(true);
-        setCurrentScreen('main');  // Changed from navigateToScreen('main') to setCurrentScreen('main')
-        console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
-    };
+    setIsAuthenticated(true);
+    setCurrentScreen('main');
+    console.log('🎉 Authentication successful! Welcome to The Morning Amen!');
+};
 
     const handleSocialLogin = (provider: string) => {
         console.log(`🔐 ${provider} login initiated...`);

@@ -41,87 +41,88 @@
     const Stack = createStackNavigator<RootStackParamList>();
 
     // Auth Stack Component
-    const AuthStack = () => {
-    return (
-        <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-            headerShown: false,
-            gestureEnabled: true,
-            cardStyleInterpolator: ({
+    const AuthStack = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) => void }) => {
+        return (
+            <Stack.Navigator
+            initialRouteName="Login"
+            screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                cardStyleInterpolator: ({
                 current,
                 layouts,
-            }: {
+                }: {
                 current: { progress: { interpolate: (config: { inputRange: number[]; outputRange: number[] }) => any } };
                 layouts: { screen: { width: number } };
-            }) => {
-            return {
-                cardStyle: {
-                transform: [
-                    {
-                    translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                    }),
+                }) => {
+                return {
+                    cardStyle: {
+                    transform: [
+                        {
+                        translateX: current.progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [layouts.screen.width, 0],
+                        }),
+                        },
+                    ],
                     },
-                ],
+                };
                 },
-            };
-            },
-        }}
-        >
-        <Stack.Screen name="Login">
-            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'Login'> }) => (
-            <LoginScreen
-                onLogin={() => navigation.navigate('MainTabs')}
-                onSignUp={() => navigation.navigate('SignUp')}
-                onGoogleLogin={() => navigation.navigate('MainTabs')}
-                onAppleLogin={() => navigation.navigate('MainTabs')}
-                onBack={() => navigation.goBack()}
-                onForgotPassword={() => navigation.navigate('ForgotPassword')}
-            />
-            )}
-        </Stack.Screen>
-        
-        <Stack.Screen name="SignUp">
-            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'SignUp'> }) => (
-            <SignUpScreen
-                onSignUp={() => navigation.navigate('MainTabs')}
-                onLogin={() => navigation.navigate('Login')}
-                onBack={() => navigation.goBack()}
-                onGoogleSignUp={() => navigation.navigate('MainTabs')}
-                onAppleSignUp={() => navigation.navigate('MainTabs')}
-                navigation={navigation}
-            />
-            )}
-        </Stack.Screen>
-        
-        <Stack.Screen name="ForgotPassword">
-            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'ForgotPassword'> }) => (
-            <ForgotPasswordScreen
-                onBack={() => navigation.goBack()}
-                onSuccess={() => navigation.navigate('Login')}
-            />
-            )}
-        </Stack.Screen>
-                <Stack.Screen name="TermsAndConditions">
-            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'TermsAndConditions'> }) => (
-            <TermsAndConditionsScreen
-                navigation={navigation}
-            />
-            )}
-        </Stack.Screen>
+            }}
+            >
+            <Stack.Screen name="Login">
+                {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'Login'> }) => (
+                <LoginScreen
+                    onLogin={() => setIsAuthenticated(true)}
+                    onSignUp={() => navigation.navigate('SignUp')}
+                    onGoogleLogin={() => setIsAuthenticated(true)}
+                    onAppleLogin={() => setIsAuthenticated(true)}
+                    onBack={() => navigation.goBack()}
+                    onForgotPassword={() => navigation.navigate('ForgotPassword')}
+                />
+                )}
+            </Stack.Screen>
+            
+            <Stack.Screen name="SignUp">
+                {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'SignUp'> }) => (
+                <SignUpScreen
+                    onSignUp={() => setIsAuthenticated(true)}
+                    onLogin={() => navigation.navigate('Login')}
+                    onBack={() => navigation.goBack()}
+                    onGoogleSignUp={() => setIsAuthenticated(true)}
+                    onAppleSignUp={() => setIsAuthenticated(true)}
+                    navigation={navigation}
+                />
+                )}
+            </Stack.Screen>
+            
+            <Stack.Screen name="ForgotPassword">
+                {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'ForgotPassword'> }) => (
+                <ForgotPasswordScreen
+                    onBack={() => navigation.goBack()}
+                    onSuccess={() => navigation.navigate('Login')}
+                />
+                )}
+            </Stack.Screen>
+            
+            <Stack.Screen name="TermsAndConditions">
+                {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'TermsAndConditions'> }) => (
+                <TermsAndConditionsScreen
+                    navigation={navigation}
+                />
+                )}
+            </Stack.Screen>
 
-        <Stack.Screen name="PrivacyPolicy">
-            {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'PrivacyPolicy'> }) => (
-            <PrivacyPolicyScreen
-                navigation={navigation}
-            />
-            )}
-        </Stack.Screen>
-        </Stack.Navigator>
-    );
-    };
+            <Stack.Screen name="PrivacyPolicy">
+                {({ navigation }: { navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, 'PrivacyPolicy'> }) => (
+                <PrivacyPolicyScreen
+                    navigation={navigation}
+                />
+                )}
+            </Stack.Screen>
+            </Stack.Navigator>
+        );
+        };
 
     // Main App Component
     export const RootNavigator: React.FC = () => {
@@ -189,7 +190,9 @@
                     )}
             </Stack.Screen>
             ) : (
-            <Stack.Screen name="Auth" component={AuthStack} />
+            <Stack.Screen name="Auth">
+                {() => <AuthStack setIsAuthenticated={setIsAuthenticated} />}
+            </Stack.Screen>
             )}
         </Stack.Navigator>
         </NavigationContainer>

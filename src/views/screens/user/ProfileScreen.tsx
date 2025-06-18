@@ -25,7 +25,8 @@
     import { LinearGradient } from 'expo-linear-gradient';
     import { BlurView } from 'expo-blur';
     import * as ImagePicker from 'expo-image-picker';
-    import { authService, User } from '../../../models/services/AuthService';
+    import { useAuth } from '../../../controllers/contexts/AuthContext';
+    import { User } from '../../../models/services/AuthService';
     import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
     import { 
     BackIcon, 
@@ -44,7 +45,8 @@
     }
 
     export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const { user, updateProfile } = useAuth();
+    const [localUser, setLocalUser] = useState<User | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -60,15 +62,15 @@
     useEffect(() => {
         loadUserData();
         startAnimations();
-    }, []);
+    }, [user]); // Add user as dependency
 
+    // Load user data from context
     const loadUserData = () => {
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-        setUser(currentUser);
-        setFirstName(currentUser.firstName);
-        setLastName(currentUser.lastName);
-        setProfilePicture(currentUser.profilePicture || null);
+        if (user) {
+        setLocalUser(user);
+        setFirstName(user.firstName);
+        setLastName(user.lastName);
+        setProfilePicture(user.profilePicture || null);
         }
     };
 
@@ -145,14 +147,14 @@
             profilePicture: profilePicture || undefined,
         };
 
-        const response = await authService.updateUserProfile(user.id, updates);
-        
-        if (response.success && response.user) {
-            setUser(response.user);
+        // Only include profilePicture if it's set
+        const success = await updateProfile(updates);
+        if (success) {
+            setLocalUser({ ...user, ...updates });
             setIsEditing(false);
             Alert.alert('Success', 'Profile updated successfully! ✨');
         } else {
-            Alert.alert('Error', response.error || 'Failed to update profile');
+            Alert.alert('Error', 'Failed to update profile');
         }
         } catch (error) {
         Alert.alert('Error', 'Failed to update profile. Please try again.');
@@ -430,6 +432,7 @@
                     </View>
                     </View>
 
+                {/* COMMENTED OUT: Email Verification Status
                     <View style={styles.detailRow}>
                     <View style={styles.detailIcon}>
                         <SpiritualIcons.Peace size={16} gradient />
@@ -444,6 +447,8 @@
                         </Text>
                     </View>
                     </View>
+                    */}
+                    
                 </LinearGradient>
                 </BlurView>
             </Animated.View>

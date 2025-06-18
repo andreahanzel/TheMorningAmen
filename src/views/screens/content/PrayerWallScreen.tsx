@@ -30,7 +30,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { usePrayer } from '../../../controllers/contexts/PrayerContext';
+import { useAuth } from '../../../controllers/contexts/AuthContext';
 import { SpiritualIcons } from '../../components/icons/SpiritualIcons';
 import { 
     PrayerIcon, 
@@ -94,7 +96,8 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
     const [isCommentAnonymous, setIsCommentAnonymous] = useState(true);
     const [commentAuthorName, setCommentAuthorName] = useState('');
     const [refreshing, setRefreshing] = useState(false);
-    const [userId] = useState(() => Date.now().toString()); // Simple user ID generation
+    const { user: authUser } = useAuth(); // Import useAuth hook
+    const [userId] = useState(() => authUser?.id || 'demo_user_' + Date.now().toString());
 
     // Animation values
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -187,7 +190,9 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         setEditingPrayerId(null);
     };
 
-    const pickImage = async () => {
+    // Function to pick and compress an image
+    // This function uses Expo's ImagePicker and ImageManipulator to select and compress an image
+     const pickImage = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -197,10 +202,25 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
             });
 
             if (!result.canceled) {
-                setSelectedImage(result.assets[0].uri);
+
+                // Compress the image and convert to base64 for storage
+                const compressedImage = await ImageManipulator.manipulateAsync(
+                    result.assets[0].uri,
+                    [
+                        { resize: { width: 400 } }, // Smaller size for better performance
+                    ],
+                    {
+                        compress: 0.5, // Better quality
+                        format: ImageManipulator.SaveFormat.JPEG,
+                        base64: true, // Convert to base64 for storage
+                    }
+                );
+
+                const base64Image = `data:image/jpeg;base64,${compressedImage.base64}`;
+                setSelectedImage(base64Image);
             }
         } catch (error) {
-            console.error('Error picking image:', error);
+            console.error('Error picking/compressing image:', error);
             Alert.alert('Error', 'Failed to select image. Please try again.');
         }
     };
@@ -219,12 +239,39 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
         setIsSubmitting(true);
 
         try {
+            let finalImageUri = null;
+            
+            // If there's a selected image, compress it further for storage
+            if (selectedImage) {
+                const finalCompressed = await ImageManipulator.manipulateAsync(
+                    selectedImage,
+                    [
+                        { resize: { width: 600 } }, // Better size for good quality
+                    ],
+                    {
+                        compress: 0.4, // Better quality
+                        format: ImageManipulator.SaveFormat.JPEG,
+                        base64: true, // Convert to base64 for Firestore
+                    }
+                );
+
+                // Create a data URI that's much smaller
+                finalImageUri = `data:image/jpeg;base64,${finalCompressed.base64}`;
+                
+                // Check if still too large (Firestore limit is ~1MB for entire document)
+               if (finalImageUri.length > 100000) { // 100KB limit for safety
+                    Alert.alert('Image Too Large', 'Please select a smaller image.');
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
             const prayerData = {
                 text: newPrayer.trim(),
                 category: selectedCategory,
                 isAnonymous,
-                authorName: isAnonymous ? undefined : authorName.trim(),
-                imageUri: selectedImage || undefined,
+                ...(isAnonymous ? {} : { authorName: authorName.trim() || 'Anonymous' }),
+                ...(finalImageUri ? { imageUri: finalImageUri } : {}),
                 authorId: userId,
                 userHasPrayed: false,
                 comments: [],
@@ -506,7 +553,14 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
                                 </>
                             )}
                             <Text style={styles.dateText}>
-                                {new Date(prayer.date).toLocaleDateString()}
+                                {prayer.date
+                                    ? (typeof prayer.date === 'string'
+                                        ? new Date(prayer.date).toLocaleDateString()
+                                        : (prayer.date && typeof prayer.date === 'object' && 'toLocaleDateString' in prayer.date
+                                            ? (prayer.date as Date).toLocaleDateString()
+                                            : new Date().toLocaleDateString()))
+                                    : new Date().toLocaleDateString()
+                                }
                             </Text>
                         </View>
                     </View>
@@ -1242,8 +1296,9 @@ const styles = StyleSheet.create({
 
     prayerImage: {
         width: '100%',
-        height: 200,
+        height: 150, // Smaller height for better grid layout
         resizeMode: 'cover',
+        borderRadius: 8,
     },
 
     prayerText: {
@@ -1395,12 +1450,11 @@ const styles = StyleSheet.create({
 
     modalHeader: {
         flexDirection: 'row',
-        justifyContent: 'flex-start',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 24,
-        marginTop: Platform.OS === 'ios' ? 60 : 40,
-        paddingTop: 0,
-        paddingRight: 50,
+        paddingTop: 20,
+        paddingRight: 0,
     },
 
     modalHeaderLeft: {
