@@ -220,7 +220,7 @@ export const PrayerWallScreen: React.FC<PrayerWallScreenProps> = ({ navigation }
 
     // Function to pick and compress an image
     // This function uses Expo's ImagePicker and ImageManipulator to select and compress an image
-     const pickImage = async () => {
+    const pickImage = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
